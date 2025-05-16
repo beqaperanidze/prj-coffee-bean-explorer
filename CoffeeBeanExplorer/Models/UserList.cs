@@ -4,9 +4,9 @@ namespace CoffeeBeanExplorer.Models;
 
 public class UserList
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid UserId { get; set; }
-    public Guid BeanId { get; set; }
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public int BeanId { get; set; }
     public CollectionType Type { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

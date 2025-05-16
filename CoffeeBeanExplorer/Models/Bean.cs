@@ -5,11 +5,11 @@ namespace CoffeeBeanExplorer.Models;
 
 public class Bean
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
     [Required] [StringLength(100)] public string Name { get; set; } = string.Empty;
 
-    public Guid OriginId { get; set; }
+    public int OriginId { get; set; }
 
     public RoastLevel RoastLevel { get; set; } = RoastLevel.Light;
 
