@@ -1,6 +1,3 @@
 @CoffeeBeanExplorer_HostAddress = http://localhost:5197
 
-GET {{CoffeeBeanExplorer_HostAddress}}/weatherforecast/
-Accept: application/json
-
 ###

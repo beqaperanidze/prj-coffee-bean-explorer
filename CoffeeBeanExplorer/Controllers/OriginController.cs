@@ -8,7 +8,7 @@ namespace CoffeeBeanExplorer.Controllers;
 [Route("api/[controller]")]
 public class OriginsController : ControllerBase
 {
-    private static readonly List<Origin> Origins = new();
+    private static readonly List<Origin> Origins = [];
     private static int _nextId = 1;
 
     /// <summary>
@@ -90,9 +90,6 @@ public class OriginsController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Maps an Origin entity to an OriginDto
-    /// </summary>
     private static OriginDto MapToDto(Origin origin)
     {
         return new OriginDto
