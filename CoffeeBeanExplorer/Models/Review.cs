@@ -4,11 +4,11 @@ namespace CoffeeBeanExplorer.Models;
 
 public class Review
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
 
-    public Guid BeanId { get; set; }
+    public int BeanId { get; set; }
 
     [Range(1, 5, ErrorMessage = "Must be  1-5")]
     public int Rating { get; set; }
