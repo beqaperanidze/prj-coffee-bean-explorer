@@ -85,7 +85,6 @@ public class BeanTasteNoteController : ControllerBase
         TasteNotes.Remove(beanTasteNote);
         return NoContent();
     }
-
     private static BeanTasteNoteDto MapToDto(BeanTasteNote tasteNote)
     {
         return new BeanTasteNoteDto
