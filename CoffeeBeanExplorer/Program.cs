@@ -1,13 +1,8 @@
 using System.Reflection;
-using CoffeeBeanExplorer.Data;
 using CoffeeBeanExplorer.Services;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -37,10 +32,10 @@ builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("global", config =>
     {
-        config.PermitLimit = 100; 
-        config.Window = TimeSpan.FromMinutes(1); 
+        config.PermitLimit = 100;
+        config.Window = TimeSpan.FromMinutes(1);
         config.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
-        config.QueueLimit = 10; 
+        config.QueueLimit = 10;
     });
 });
 
