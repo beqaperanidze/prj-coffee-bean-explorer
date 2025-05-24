@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using CoffeeBeanExplorer.Domain.Enums;
 
-namespace CoffeeBeanExplorer.Models.DTOs;
+namespace CoffeeBeanExplorer.Application.DTOs;
 
 public class UserDto
 {

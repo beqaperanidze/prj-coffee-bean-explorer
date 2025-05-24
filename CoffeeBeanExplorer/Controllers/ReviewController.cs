@@ -1,6 +1,5 @@
-﻿using CoffeeBeanExplorer.Domain.Models;
-using CoffeeBeanExplorer.Models;
-using CoffeeBeanExplorer.Models.DTOs;
+﻿using CoffeeBeanExplorer.Application.DTOs;
+using CoffeeBeanExplorer.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeBeanExplorer.Controllers;
@@ -130,9 +129,9 @@ public class ReviewController : ControllerBase
         {
             Id = review.Id,
             UserId = review.UserId,
-            Username = review.User.Username,
+            Username = review.User?.Username ?? string.Empty,
             BeanId = review.BeanId,
-            BeanName = review.Bean.Name,
+            BeanName = review.Bean?.Name ?? string.Empty,
             Rating = review.Rating,
             Comment = review.Comment,
             CreatedAt = review.CreatedAt,

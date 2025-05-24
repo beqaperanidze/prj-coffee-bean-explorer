@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CoffeeBeanExplorer.Models.DTOs;
+namespace CoffeeBeanExplorer.Application.DTOs;
 
 public class ReviewDto
 {
