@@ -7,43 +7,32 @@ CREATE SCHEMA IF NOT EXISTS "Social";
 
 CREATE TABLE "Product"."Tags"
 (
-    "Id"        SERIAL,
-    "Name"      VARCHAR(50) NOT NULL,
-    "CreatedAt" TIMESTAMP   NOT NULL CONSTRAINT "DF_Tags_CreatedAt" DEFAULT now(),
-    "UpdatedAt" TIMESTAMP   NOT NULL CONSTRAINT "DF_Tags_UpdatedAt" DEFAULT now(),
-    "CreatedBy" INT,
-    "UpdatedBy" INT,
-    CONSTRAINT "PK_Tags_Id" PRIMARY KEY ("Id"),
-    CONSTRAINT "UQ_Tags_Name" UNIQUE ("Name")
+    "Id"        SERIAL PRIMARY KEY,
+    "Name"      VARCHAR(50) NOT NULL UNIQUE,
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+    "UpdatedAt" TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "Product"."Origins"
 (
-    "Id"        SERIAL,
+    "Id"        SERIAL PRIMARY KEY,
     "Country"   VARCHAR(100) NOT NULL,
     "Region"    VARCHAR(100),
-    "CreatedAt" TIMESTAMP    NOT NULL CONSTRAINT "DF_Origins_CreatedAt" DEFAULT now(),
-    "UpdatedAt" TIMESTAMP    NOT NULL CONSTRAINT "DF_Origins_UpdatedAt" DEFAULT now(),
-    "CreatedBy" INT,
-    "UpdatedBy" INT,
-    CONSTRAINT "PK_Origins_Id" PRIMARY KEY ("Id"),
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+    "UpdatedAt" TIMESTAMP NOT NULL DEFAULT now(),
     CONSTRAINT "UQ_Origins_Country_Region" UNIQUE ("Country", "Region")
 );
 
 CREATE TABLE "Product"."Beans"
 (
-    "Id"          SERIAL,
+    "Id"          SERIAL PRIMARY KEY,
     "Name"        VARCHAR(100)   NOT NULL,
-    "OriginId"    INT            NOT NULL,
+    "OriginId"    INT            NOT NULL REFERENCES "Product"."Origins" ("Id"),
     "RoastLevel"  "RoastLevel"   NOT NULL,
     "Description" VARCHAR(500),
     "Price"       DECIMAL(10, 2) NOT NULL,
-    "CreatedAt"   TIMESTAMP      NOT NULL CONSTRAINT "DF_Beans_CreatedAt" DEFAULT now(),
-    "UpdatedAt"   TIMESTAMP      NOT NULL CONSTRAINT "DF_Beans_UpdatedAt" DEFAULT now(),
-    "CreatedBy"   INT,
-    "UpdatedBy"   INT,
-    CONSTRAINT "PK_Beans_Id" PRIMARY KEY ("Id"),
-    CONSTRAINT "FK_Beans_OriginId" FOREIGN KEY ("OriginId") REFERENCES "Product"."Origins" ("Id")
+    "CreatedAt"   TIMESTAMP      NOT NULL DEFAULT now(),
+    "UpdatedAt"   TIMESTAMP      NOT NULL DEFAULT now()
 );
 
 CREATE INDEX "IX_Beans_OriginId" ON "Product"."Beans" ("OriginId");
@@ -52,48 +41,34 @@ CREATE INDEX "IX_Beans_Name" ON "Product"."Beans" ("Name");
 
 CREATE TABLE "Product"."BeansTags"
 (
-    "BeanId"    INT       NOT NULL,
-    "TagId"     INT       NOT NULL,
-    "CreatedAt" TIMESTAMP NOT NULL CONSTRAINT "DF_BeansTags_CreatedAt" DEFAULT now(),
-    "CreatedBy" INT,
-    CONSTRAINT "PK_BeansTags" PRIMARY KEY ("BeanId", "TagId"),
-    CONSTRAINT "FK_BeansTags_BeanId" FOREIGN KEY ("BeanId") REFERENCES "Product"."Beans" ("Id"),
-    CONSTRAINT "FK_BeansTags_TagId" FOREIGN KEY ("TagId") REFERENCES "Product"."Tags" ("Id")
+    "BeanId"    INT NOT NULL REFERENCES "Product"."Beans" ("Id"),
+    "TagId"     INT NOT NULL REFERENCES "Product"."Tags" ("Id"),
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT "PK_BeansTags" PRIMARY KEY ("BeanId", "TagId")
 );
 
 CREATE TABLE "Auth"."Users"
 (
-    "Id"           SERIAL,
-    "Username"     VARCHAR(50)  NOT NULL,
-    "Email"        VARCHAR(255) NOT NULL,
+    "Id"           SERIAL PRIMARY KEY,
+    "Username"     VARCHAR(50)  NOT NULL UNIQUE,
+    "Email"        VARCHAR(255) NOT NULL UNIQUE,
     "PasswordHash" VARCHAR(255) NOT NULL,
     "FirstName"    VARCHAR(100),
     "LastName"     VARCHAR(100),
-    "Role"         "UserRole"   NOT NULL CONSTRAINT "DF_Users_Role" DEFAULT 'User',
-    "CreatedAt"    TIMESTAMP    NOT NULL CONSTRAINT "DF_Users_CreatedAt" DEFAULT now(),
-    "UpdatedAt"    TIMESTAMP    NOT NULL CONSTRAINT "DF_Users_UpdatedAt" DEFAULT now(),
-    "CreatedBy"    INT,
-    "UpdatedBy"    INT,
-    CONSTRAINT "PK_Users_Id" PRIMARY KEY ("Id"),
-    CONSTRAINT "UQ_Users_Username" UNIQUE ("Username"),
-    CONSTRAINT "UQ_Users_Email" UNIQUE ("Email")
+    "Role"         "UserRole" NOT NULL DEFAULT 'User',
+    "CreatedAt"    TIMESTAMP  NOT NULL DEFAULT now(),
+    "UpdatedAt"    TIMESTAMP  NOT NULL DEFAULT now()
 );
 
 CREATE TABLE "Social"."Reviews"
 (
-    "Id"        SERIAL,
-    "UserId"    INT       NOT NULL,
-    "BeanId"    INT       NOT NULL,
-    "Rating"    INT       NOT NULL,
+    "Id"        SERIAL PRIMARY KEY,
+    "UserId"    INT NOT NULL REFERENCES "Auth"."Users" ("Id"),
+    "BeanId"    INT NOT NULL REFERENCES "Product"."Beans" ("Id"),
+    "Rating"    INT NOT NULL CHECK ("Rating" BETWEEN 1 AND 5),
     "Comment"   VARCHAR(500),
-    "CreatedAt" TIMESTAMP NOT NULL CONSTRAINT "DF_Reviews_CreatedAt" DEFAULT now(),
-    "UpdatedAt" TIMESTAMP NOT NULL CONSTRAINT "DF_Reviews_UpdatedAt" DEFAULT now(),
-    "CreatedBy" INT,
-    "UpdatedBy" INT,
-    CONSTRAINT "PK_Reviews_Id" PRIMARY KEY ("Id"),
-    CONSTRAINT "FK_Reviews_UserId" FOREIGN KEY ("UserId") REFERENCES "Auth"."Users" ("Id"),
-    CONSTRAINT "FK_Reviews_BeanId" FOREIGN KEY ("BeanId") REFERENCES "Product"."Beans" ("Id"),
-    CONSTRAINT "CK_Reviews_Rating" CHECK ("Rating" BETWEEN 1 AND 5)
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+    "UpdatedAt" TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE INDEX "IX_Reviews_UserId" ON "Social"."Reviews" ("UserId");
@@ -102,25 +77,18 @@ CREATE UNIQUE INDEX "IX_Reviews_UserId_BeanId" ON "Social"."Reviews" ("UserId", 
 
 CREATE TABLE "Social"."UserLists"
 (
-    "Id"        SERIAL,
-    "UserId"    INT          NOT NULL,
+    "Id"        SERIAL PRIMARY KEY,
+    "UserId"    INT NOT NULL REFERENCES "Auth"."Users" ("Id"),
     "Name"      VARCHAR(100) NOT NULL,
-    "CreatedAt" TIMESTAMP    NOT NULL CONSTRAINT "DF_UserLists_CreatedAt" DEFAULT now(),
-    "UpdatedAt" TIMESTAMP    NOT NULL CONSTRAINT "DF_UserLists_UpdatedAt" DEFAULT now(),
-    "CreatedBy" INT,
-    "UpdatedBy" INT,
-    CONSTRAINT "PK_UserLists_Id" PRIMARY KEY ("Id"),
-    CONSTRAINT "FK_UserLists_UserId" FOREIGN KEY ("UserId") REFERENCES "Auth"."Users" ("Id"),
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+    "UpdatedAt" TIMESTAMP NOT NULL DEFAULT now(),
     CONSTRAINT "UQ_UserLists_UserId_Name" UNIQUE ("UserId", "Name")
 );
 
 CREATE TABLE "Social"."ListItems"
 (
-    "ListId"    INT       NOT NULL,
-    "BeanId"    INT       NOT NULL,
-    "CreatedAt" TIMESTAMP NOT NULL CONSTRAINT "DF_ListItems_CreatedAt" DEFAULT now(),
-    "CreatedBy" INT,
-    CONSTRAINT "PK_ListItems" PRIMARY KEY ("ListId", "BeanId"),
-    CONSTRAINT "FK_ListItems_ListId" FOREIGN KEY ("ListId") REFERENCES "Social"."UserLists" ("Id"),
-    CONSTRAINT "FK_ListItems_BeanId" FOREIGN KEY ("BeanId") REFERENCES "Product"."Beans" ("Id")
+    "ListId"    INT NOT NULL REFERENCES "Social"."UserLists" ("Id"),
+    "BeanId"    INT NOT NULL REFERENCES "Product"."Beans" ("Id"),
+    "CreatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT "PK_ListItems" PRIMARY KEY ("ListId", "BeanId")
 );
