@@ -1,0 +1,284 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CoffeeBeanExplorer</name>
+    </assembly>
+    <members>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanController.GetAll">
+            <summary>
+            Retrieves all coffee beans
+            </summary>
+            <returns>List of all beans</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanController.GetById(System.Int32)">
+            <summary>
+            Retrieves a specific beans by its ID
+            </summary>
+            <param name="id">The ID of the bean to retrieve</param>
+            <returns>The requested bean or NotFound</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanController.Create(CoffeeBeanExplorer.Application.DTOs.CreateBeanDto)">
+            <summary>
+            Creates a new coffee bean
+            </summary>
+            <param name="createDto">The bean data to create</param>
+            <returns>The created bean with its new ID</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanController.Update(System.Int32,CoffeeBeanExplorer.Application.DTOs.UpdateBeanDto)">
+            <summary>
+            Updates an existing bean by ID
+            </summary>
+            <param name="id">ID of the bean to update</param>
+            <param name="updateDto">New bean data</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanController.Delete(System.Int32)">
+            <summary>
+            Deletes a bean by its ID
+            </summary>
+            <param name="id">ID of the bean to delete</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.GetAll">
+            <summary>
+            Retrieves all bean taste notes
+            </summary>
+            <returns>List of all taste notes</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.GetByBeanId(System.Int32)">
+            <summary>
+            Retrieves taste notes for a specific bean
+            </summary>
+            <param name="beanId">The ID of the bean</param>
+            <returns>List of taste notes for the bean</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.GetByTasteNote(CoffeeBeanExplorer.Domain.Enums.TasteNote)">
+            <summary>
+            Retrieves beans by taste note
+            </summary>
+            <param name="tasteNote">The taste note to filter by</param>
+            <returns>List of beans with the specified taste note</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.Create(CoffeeBeanExplorer.Models.DTOs.CreateBeanTasteNoteDto)">
+            <summary>
+            Creates a new bean taste note association
+            </summary>
+            <param name="createDto">The taste note data to create</param>
+            <returns>The created taste note</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.Delete(System.Int32,CoffeeBeanExplorer.Domain.Enums.TasteNote)">
+            <summary>
+            Deletes a taste note association from a bean
+            </summary>
+            <param name="beanId">Bean ID</param>
+            <param name="tasteNote">Taste note to remove</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.GetAll">
+            <summary>
+            Retrieves all coffee origins
+            </summary>
+            <returns>List of all origins</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.GetById(System.Int32)">
+            <summary>
+            Retrieves a specific origin by its ID
+            </summary>
+            <param name="id">The ID of the origin to retrieve</param>
+            <returns>The requested origin or NotFound</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.Create(CoffeeBeanExplorer.Models.DTOs.CreateOriginDto)">
+            <summary>
+            Creates a new coffee origin
+            </summary>
+            <param name="createDto">The origin data to create</param>
+            <returns>The created origin with its new ID</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.Update(System.Int32,CoffeeBeanExplorer.Models.DTOs.UpdateOriginDto)">
+            <summary>
+            Updates an existing origin by ID
+            </summary>
+            <param name="id">ID of the origin to update</param>
+            <param name="updateDto">New origin data</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.Delete(System.Int32)">
+            <summary>
+            Deletes an origin by its ID
+            </summary>
+            <param name="id">ID of the origin to delete</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.GetAll">
+            <summary>
+            Retrieves all reviews
+            </summary>
+            <returns>List of all reviews</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.GetById(System.Int32)">
+            <summary>
+            Retrieves a specific review by its ID
+            </summary>
+            <param name="id">The ID of the review to retrieve</param>
+            <returns>The requested review or NotFound</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.GetByBeanId(System.Int32)">
+            <summary>
+            Retrieves all reviews for a specific bean
+            </summary>
+            <param name="beanId">The bean ID to get reviews for</param>
+            <returns>List of reviews for the specified bean</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.GetByUserId(System.Int32)">
+            <summary>
+            Retrieves all reviews by a specific user
+            </summary>
+            <param name="userId">The user ID to get reviews for</param>
+            <returns>List of reviews by the specified user</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.Create(CoffeeBeanExplorer.Models.DTOs.CreateReviewDto,System.Int32)">
+            <summary>
+            Creates a new review
+            </summary>
+            <param name="createDto">The review data to create</param>
+            <param name="userId">ID of the user creating the review (from auth context in a real app)</param>
+            <returns>The created review with its new ID</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.Update(System.Int32,CoffeeBeanExplorer.Models.DTOs.UpdateReviewDto,System.Int32)">
+            <summary>
+            Updates an existing review by ID
+            </summary>
+            <param name="id">ID of the review to update</param>
+            <param name="updateDto">New review data</param>
+            <param name="userId">ID of the user updating the review</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.Delete(System.Int32)">
+            <summary>
+            Deletes a review by its ID
+            </summary>
+            <param name="id">ID of the review to delete</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserController.GetAll">
+            <summary>
+            Retrieves all users
+            </summary>
+            <returns>List of all users</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserController.GetById(System.Int32)">
+            <summary>
+            Retrieves a specific user by ID
+            </summary>
+            <param name="id">The ID of the user to retrieve</param>
+            <returns>The requested user or NotFound</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserController.Create(CoffeeBeanExplorer.Models.DTOs.UserRegistrationDto)">
+            <summary>
+            Creates a new user
+            </summary>
+            <param name="userRegistrationDto">The user data for registration</param>
+            <returns>The created user with its new ID</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserController.Update(System.Int32,CoffeeBeanExplorer.Models.DTOs.UserUpdateDto)">
+            <summary>
+            Updates an existing user by ID
+            </summary>
+            <param name="id">ID of the user to update</param>
+            <param name="userUpdateDto">New user data</param>
+            <returns>The updated user data</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserController.Delete(System.Int32)">
+            <summary>
+            Deletes a user by ID
+            </summary>
+            <param name="id">ID of the user to delete</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserController.MapToDto(CoffeeBeanExplorer.Domain.Models.User)">
+            <summary>
+            Maps a User entity to UserDto
+            </summary>
+            <param name="user">User entity to convert</param>
+            <returns>UserDto without sensitive information</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.GetAll">
+            <summary>
+            Retrieves all user list entries
+            </summary>
+            <returns>List of all entries</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.GetById(System.Int32)">
+            <summary>
+            Retrieves a specific user list entry by its ID
+            </summary>
+            <param name="id">The ID of the entry to retrieve</param>
+            <returns>The requested entry or NotFound</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.GetByUserId(System.Int32)">
+            <summary>
+            Retrieves all list entries for a specific user
+            </summary>
+            <param name="userId">The user ID to get entries for</param>
+            <returns>List of entries for the specified user</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.GetByUserIdAndType(System.Int32,CoffeeBeanExplorer.Domain.Enums.CollectionType)">
+            <summary>
+            Retrieves all list entries of a specific type for a user
+            </summary>
+            <param name="userId">The user ID</param>
+            <param name="type">The collection type</param>
+            <returns>List of entries of specified type for the user</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.Create(CoffeeBeanExplorer.Models.DTOs.CreateUserListDto)">
+            <summary>
+            Creates a new user list entry
+            </summary>
+            <param name="createDto">The entry data to create</param>
+            <returns>The created entry with its new ID</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.Update(System.Int32,CoffeeBeanExplorer.Models.DTOs.UpdateUserListDto)">
+            <summary>
+            Updates an existing user list entry by ID
+            </summary>
+            <param name="id">ID of the entry to update</param>
+            <param name="updateDto">New entry data</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.Delete(System.Int32)">
+            <summary>
+            Deletes a user list entry by its ID
+            </summary>
+            <param name="id">ID of the entry to delete</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="T:CoffeeBeanExplorer.CoffeeReflection">
+            <summary>Holder for reflection information generated from protos/coffee.proto</summary>
+        </member>
+        <member name="P:CoffeeBeanExplorer.CoffeeReflection.Descriptor">
+            <summary>File descriptor for protos/coffee.proto</summary>
+        </member>
+        <member name="F:CoffeeBeanExplorer.CoffeeRequest.NameFieldNumber">
+            <summary>Field number for the "name" field.</summary>
+        </member>
+        <member name="F:CoffeeBeanExplorer.CoffeeResponse.MessageFieldNumber">
+            <summary>Field number for the "message" field.</summary>
+        </member>
+        <member name="P:CoffeeBeanExplorer.CoffeeService.Descriptor">
+            <summary>Service descriptor</summary>
+        </member>
+        <member name="T:CoffeeBeanExplorer.CoffeeService.CoffeeServiceBase">
+            <summary>Base class for server-side implementations of CoffeeService</summary>
+        </member>
+        <member name="M:CoffeeBeanExplorer.CoffeeService.BindService(CoffeeBeanExplorer.CoffeeService.CoffeeServiceBase)">
+            <summary>Creates service definition that can be registered with a server</summary>
+            <param name="serviceImpl">An object implementing the server-side handling logic.</param>
+        </member>
+        <member name="M:CoffeeBeanExplorer.CoffeeService.BindService(Grpc.Core.ServiceBinderBase,CoffeeBeanExplorer.CoffeeService.CoffeeServiceBase)">
+            <summary>Register service method with a service binder with or without implementation. Useful when customizing the service binding logic.
+            Note: this method is part of an experimental API that can change or be removed without any prior notice.</summary>
+            <param name="serviceBinder">Service methods will be bound by calling <c>AddMethod</c> on this object.</param>
+            <param name="serviceImpl">An object implementing the server-side handling logic.</param>
+        </member>
+    </members>
+</doc>

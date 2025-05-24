@@ -1,21 +1,18 @@
-﻿using System.Threading.Tasks;
-using Grpc.Core;
-using Microsoft.Extensions.Logging;
+﻿using Grpc.Core;
 
-namespace CoffeeBeanExplorer.Services
+namespace CoffeeBeanExplorer.Services;
+
+public class CoffeeGrpcService(ILogger<CoffeeGrpcService> logger) : CoffeeService.CoffeeServiceBase
 {
-    public class CoffeeGrpcService(ILogger<CoffeeGrpcService> logger) : CoffeeService.CoffeeServiceBase
+    private readonly ILogger<CoffeeGrpcService> _logger = logger;
+
+    public override Task<CoffeeResponse> GetCoffee(CoffeeRequest request, ServerCallContext context)
     {
-        private readonly ILogger<CoffeeGrpcService> _logger = logger;
-
-        public override Task<CoffeeResponse> GetCoffee(CoffeeRequest request, ServerCallContext context)
+        var response = new CoffeeResponse
         {
-            var response = new CoffeeResponse
-            {
-                Message = $"Coffee info for {request.Name}"
-            };
+            Message = $"Coffee info for {request.Name}"
+        };
 
-            return Task.FromResult(response);
-        }
+        return Task.FromResult(response);
     }
 }

@@ -1,0 +1,2 @@
+obj\Debug\net9.0\protos/Coffee.cs \
+obj\Debug\net9.0\protos/CoffeeGrpc.cs: protos/coffee.proto

@@ -1,0 +1,16 @@
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\bin\Debug\net9.0\CoffeeBeanExplorer.Application.deps.json
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\bin\Debug\net9.0\CoffeeBeanExplorer.Application.dll
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\bin\Debug\net9.0\CoffeeBeanExplorer.Application.pdb
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\bin\Debug\net9.0\CoffeeBeanExplorer.Domain.dll
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\bin\Debug\net9.0\CoffeeBeanExplorer.Domain.pdb
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\CoffeeBeanExplorer.Application.csproj.AssemblyReference.cache
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\CoffeeBeanExplorer.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\CoffeeBeanExplorer.Application.AssemblyInfoInputs.cache
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\CoffeeBeanExplorer.Application.AssemblyInfo.cs
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\CoffeeBeanExplorer.Application.csproj.CoreCompileInputs.cache
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\CoffeeBeanExplorer.Application.sourcelink.json
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\CoffeeBe.1EB94001.Up2Date
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\CoffeeBeanExplorer.Application.dll
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\refint\CoffeeBeanExplorer.Application.dll
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\CoffeeBeanExplorer.Application.pdb
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Application\obj\Debug\net9.0\ref\CoffeeBeanExplorer.Application.dll
