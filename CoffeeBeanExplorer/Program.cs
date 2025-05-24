@@ -1,4 +1,5 @@
 using System.Reflection;
+using CoffeeBeanExplorer.Configuration;
 using CoffeeBeanExplorer.Services;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -28,14 +29,19 @@ builder.Services.AddApiVersioning(options =>
 
 builder.Services.AddGrpc();
 
+builder.Services.Configure<RateLimitSettings>(
+    builder.Configuration.GetSection("RateLimit"));
+
 builder.Services.AddRateLimiter(options =>
 {
+    var rateLimitSettings = builder.Configuration.GetSection("RateLimit").Get<RateLimitSettings>();
+
     options.AddFixedWindowLimiter("global", config =>
     {
-        config.PermitLimit = 100;
-        config.Window = TimeSpan.FromMinutes(1);
+        config.PermitLimit = rateLimitSettings?.PermitLimit ?? 100;
+        config.Window = TimeSpan.FromMinutes(rateLimitSettings?.WindowMinutes ?? 1);
         config.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
-        config.QueueLimit = 10;
+        config.QueueLimit = rateLimitSettings?.QueueLimit ?? 10;
     });
 });
 
