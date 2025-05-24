@@ -1,0 +1,12 @@
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\bin\Debug\net9.0\CoffeeBeanExplorer.Domain.deps.json
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\bin\Debug\net9.0\CoffeeBeanExplorer.Domain.dll
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\bin\Debug\net9.0\CoffeeBeanExplorer.Domain.pdb
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\obj\Debug\net9.0\CoffeeBeanExplorer.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\obj\Debug\net9.0\CoffeeBeanExplorer.Domain.AssemblyInfoInputs.cache
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\obj\Debug\net9.0\CoffeeBeanExplorer.Domain.AssemblyInfo.cs
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\obj\Debug\net9.0\CoffeeBeanExplorer.Domain.csproj.CoreCompileInputs.cache
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\obj\Debug\net9.0\CoffeeBeanExplorer.Domain.sourcelink.json
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\obj\Debug\net9.0\CoffeeBeanExplorer.Domain.dll
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\obj\Debug\net9.0\refint\CoffeeBeanExplorer.Domain.dll
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\obj\Debug\net9.0\CoffeeBeanExplorer.Domain.pdb
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer.Domain\obj\Debug\net9.0\ref\CoffeeBeanExplorer.Domain.dll

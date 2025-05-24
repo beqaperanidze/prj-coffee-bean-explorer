@@ -1,4 +1,5 @@
-﻿using CoffeeBeanExplorer.Enums;
+﻿using CoffeeBeanExplorer.Domain.Enums;
+using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Models;
 using CoffeeBeanExplorer.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;

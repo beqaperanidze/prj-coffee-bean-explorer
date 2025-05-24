@@ -1,4 +1,5 @@
-﻿using CoffeeBeanExplorer.Models;
+﻿using CoffeeBeanExplorer.Domain.Models;
+using CoffeeBeanExplorer.Models;
 using CoffeeBeanExplorer.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
