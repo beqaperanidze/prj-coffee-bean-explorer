@@ -1,0 +1,17 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "CoffeeBeanExplorer";
+
+package Coffee;
+
+service CoffeeService {
+  rpc GetCoffee (CoffeeRequest) returns (CoffeeResponse);
+}
+
+message CoffeeRequest {
+  string name = 1;
+}
+
+message CoffeeResponse {
+  string message = 1;
+}

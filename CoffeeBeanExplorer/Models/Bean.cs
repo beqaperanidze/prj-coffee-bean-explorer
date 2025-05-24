@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using CoffeeBeanExplorer.Enums;
 
 namespace CoffeeBeanExplorer.Models;
@@ -22,7 +23,7 @@ public class Bean
 
     [Required] public Origin Origin { get; set; } = null!;
 
-    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
-    public virtual ICollection<UserList> UserCollections { get; set; } = new List<UserList>();
+    [JsonIgnore] public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+    [JsonIgnore] public virtual ICollection<UserList> UserCollections { get; set; } = new List<UserList>();
     public virtual ICollection<BeanTasteNote> BeanTasteNotes { get; set; } = new List<BeanTasteNote>();
 }

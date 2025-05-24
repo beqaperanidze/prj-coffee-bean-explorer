@@ -1,4 +1,5 @@
-﻿using CoffeeBeanExplorer.Enums;
+﻿using System.Text.Json.Serialization;
+using CoffeeBeanExplorer.Enums;
 
 namespace CoffeeBeanExplorer.Models;
 
@@ -24,7 +25,6 @@ public class User
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public UserRole Role { get; set; } = UserRole.User;
-
-    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
-    public virtual ICollection<UserList> UserCollections { get; set; } = new List<UserList>();
+    [JsonIgnore] public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+    [JsonIgnore] public virtual ICollection<UserList> UserCollections { get; set; } = new List<UserList>();
 }
