@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using CoffeeBeanExplorer.Domain.Enums;
-
-namespace CoffeeBeanExplorer.Domain.Models;
+﻿namespace CoffeeBeanExplorer.Domain.Models;
 
 public class UserList
 {
@@ -10,4 +7,6 @@ public class UserList
     public string Name { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public User? User { get; set; }
+    public ICollection<ListItem> Items { get; set; } = new List<ListItem>();
 }

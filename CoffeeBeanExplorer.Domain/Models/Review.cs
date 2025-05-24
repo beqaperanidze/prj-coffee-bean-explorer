@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-
-namespace CoffeeBeanExplorer.Domain.Models;
+﻿namespace CoffeeBeanExplorer.Domain.Models;
 
 public class Review
 {
@@ -12,4 +9,7 @@ public class Review
     public string? Comment { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    public User? User { get; set; }
+    public Bean? Bean { get; set; }
 }

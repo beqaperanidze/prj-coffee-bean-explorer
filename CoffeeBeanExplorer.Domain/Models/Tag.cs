@@ -6,4 +6,6 @@ public class Tag
     public string Name { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    public ICollection<BeanTag> BeanTags { get; set; } = new List<BeanTag>();
 }

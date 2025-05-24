@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace CoffeeBeanExplorer.Domain.Models;
+﻿namespace CoffeeBeanExplorer.Domain.Models;
 
 public class Origin
 {
@@ -9,4 +7,6 @@ public class Origin
     public string? Region { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    public ICollection<Bean> Beans { get; set; } = new List<Bean>();
 }

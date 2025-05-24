@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-using CoffeeBeanExplorer.Domain.Enums;
+﻿using CoffeeBeanExplorer.Domain.Enums;
 
 namespace CoffeeBeanExplorer.Domain.Models;
 
@@ -15,4 +13,7 @@ public class User
     public UserRole Role { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public ICollection<UserList> Lists { get; set; } = new List<UserList>();
 }

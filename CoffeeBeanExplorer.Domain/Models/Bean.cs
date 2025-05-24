@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-using CoffeeBeanExplorer.Domain.Enums;
+﻿using CoffeeBeanExplorer.Domain.Enums;
 
 namespace CoffeeBeanExplorer.Domain.Models;
 
@@ -14,4 +12,9 @@ public class Bean
     public decimal Price { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    public Origin? Origin { get; set; }
+    public ICollection<BeanTag> BeanTags { get; set; } = new List<BeanTag>();
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public ICollection<ListItem> ListItems { get; set; } = new List<ListItem>();
 }
