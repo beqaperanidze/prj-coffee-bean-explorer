@@ -77,11 +77,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj",
+      "projectUniqueName": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj",
       "projectName": "CoffeeBeanExplorer.Application",
-      "projectPath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj",
+      "projectPath": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj",
       "packagesPath": "C:\\Users\\Beqa\\.nuget\\packages\\",
-      "outputPath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Application\\obj\\",
+      "outputPath": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Application\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Beqa\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -96,8 +96,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj": {
-              "projectPath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj"
+            "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj": {
+              "projectPath": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj"
             }
           }
         }
@@ -110,9 +110,9 @@
       "restoreAuditProperties": {
         "enableAudit": "true",
         "auditLevel": "low",
-        "auditMode": "direct"
+        "auditMode": "all"
       },
-      "SdkAnalysisLevel": "9.0.200"
+      "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
       "net9.0": {
@@ -139,7 +139,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Users\\Beqa\\.dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Users\\Beqa\\.dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

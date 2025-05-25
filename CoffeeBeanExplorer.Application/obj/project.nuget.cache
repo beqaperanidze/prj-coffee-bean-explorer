@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "WxhOIruiuWo=",
+  "dgSpecHash": "Hgie+hT7qw0=",
   "success": true,
-  "projectFilePath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj",
+  "projectFilePath": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Beqa\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512"
   ],

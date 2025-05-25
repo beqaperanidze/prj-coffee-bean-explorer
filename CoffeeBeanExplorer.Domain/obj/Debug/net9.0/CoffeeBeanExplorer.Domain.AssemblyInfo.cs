@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CoffeeBeanExplorer.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b357351d2a9bfa5bd761a52518517c7a7557bdb3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+113f4195b93a6ab11dc1dbee595bc5255dce7121")]
 [assembly: System.Reflection.AssemblyProductAttribute("CoffeeBeanExplorer.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CoffeeBeanExplorer.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
