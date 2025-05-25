@@ -1,4 +1,7 @@
-﻿using CoffeeBeanExplorer.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
@@ -55,7 +58,7 @@ public class UserListRepository : IUserListRepository
     {
         if (_listItems.Any(li => li.ListId == listId && li.BeanId == beanId))
         {
-            return false; 
+            return false;
         }
 
         var list = GetById(listId);
@@ -72,7 +75,7 @@ public class UserListRepository : IUserListRepository
 
         _listItems.Add(listItem);
         list.Items.Add(listItem);
-        
+
         return true;
     }
 

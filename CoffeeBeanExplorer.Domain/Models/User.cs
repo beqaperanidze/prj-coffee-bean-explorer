@@ -1,4 +1,6 @@
-﻿using CoffeeBeanExplorer.Domain.Enums;
+﻿using System;
+using System.Collections.Generic;
+using CoffeeBeanExplorer.Domain.Enums;
 
 namespace CoffeeBeanExplorer.Domain.Models;
 
