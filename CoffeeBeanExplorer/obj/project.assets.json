@@ -1819,11 +1819,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer\\CoffeeBeanExplorer.csproj",
+      "projectUniqueName": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer\\CoffeeBeanExplorer.csproj",
       "projectName": "CoffeeBeanExplorer",
-      "projectPath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer\\CoffeeBeanExplorer.csproj",
+      "projectPath": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer\\CoffeeBeanExplorer.csproj",
       "packagesPath": "C:\\Users\\Beqa\\.nuget\\packages\\",
-      "outputPath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer\\obj\\",
+      "outputPath": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Beqa\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -1838,11 +1838,11 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj": {
-              "projectPath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj"
+            "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj": {
+              "projectPath": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Application\\CoffeeBeanExplorer.Application.csproj"
             },
-            "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj": {
-              "projectPath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj"
+            "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj": {
+              "projectPath": "C:\\Users\\Beqa\\RiderProjects\\prj-coffee-bean-explorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj"
             }
           }
         }
@@ -1856,9 +1856,9 @@
       "restoreAuditProperties": {
         "enableAudit": "true",
         "auditLevel": "low",
-        "auditMode": "direct"
+        "auditMode": "all"
       },
-      "SdkAnalysisLevel": "9.0.200"
+      "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
       "net9.0": {
@@ -1922,7 +1922,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Users\\Beqa\\.dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Users\\Beqa\\.dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
