@@ -5,7 +5,7 @@ namespace CoffeeBeanExplorer.Domain.Models;
 public class Bean
 {
     public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; set; } 
     public int OriginId { get; set; }
     public RoastLevel RoastLevel { get; set; }
     public string? Description { get; set; }
