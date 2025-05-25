@@ -8,6 +8,8 @@
 
 **/secrets.json
 .idea/
+**/bin/
+**/obj/
 
 # User-specific stuff
 .idea/**/workspace.xml
