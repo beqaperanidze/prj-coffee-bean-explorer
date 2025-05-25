@@ -1,7 +1,6 @@
-﻿using CoffeeBeanExplorer.Domain.Models;
+﻿using CoffeeBeanExplorer.Application.DTOs;
+using CoffeeBeanExplorer.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
-using CoffeeBeanExplorer.Models;
-using CoffeeBeanExplorer.Models.DTOs;
 
 namespace CoffeeBeanExplorer.Controllers;
 
@@ -50,7 +49,7 @@ public class OriginsController : ControllerBase
             Country = createDto.Country,
             Region = createDto.Region,
             CreatedAt = DateTime.UtcNow,
-            UpdDateTime = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow
         };
 
         Origins.Add(origin);
@@ -71,7 +70,7 @@ public class OriginsController : ControllerBase
 
         origin.Country = updateDto.Country;
         origin.Region = updateDto.Region;
-        origin.UpdDateTime = DateTime.UtcNow;
+        origin.UpdatedAt = DateTime.UtcNow;
 
         return NoContent();
     }
@@ -99,7 +98,7 @@ public class OriginsController : ControllerBase
             Country = origin.Country,
             Region = origin.Region,
             CreatedAt = origin.CreatedAt,
-            UpdDateTime = origin.UpdDateTime
+            UpdatedAt = origin.UpdatedAt
         };
     }
 }

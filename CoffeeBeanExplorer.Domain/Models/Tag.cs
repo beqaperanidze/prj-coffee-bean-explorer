@@ -1,12 +1,11 @@
 ﻿namespace CoffeeBeanExplorer.Domain.Models;
 
-public class Origin
+public class Tag
 {
     public int Id { get; set; }
-    public string Country { get; set; }
-    public string? Region { get; set; }
+    public string Name { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     
-    public ICollection<Bean> Beans { get; set; } = new List<Bean>();
+    public ICollection<BeanTag> BeanTags { get; set; } = new List<BeanTag>();
 }
