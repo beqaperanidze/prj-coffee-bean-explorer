@@ -1,5 +1,5 @@
 ﻿using CoffeeBeanExplorer.Application.DTOs;
-using CoffeeBeanExplorer.Domain.Models;
+using CoffeeBeanExplorer.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeBeanExplorer.Controllers;
@@ -8,8 +8,12 @@ namespace CoffeeBeanExplorer.Controllers;
 [Route("api/[controller]")]
 public class ReviewController : ControllerBase
 {
-    private static readonly List<Review> Reviews = [];
-    private static int _nextId = 1;
+    private readonly IReviewService _reviewService;
+
+    public ReviewController(IReviewService reviewService)
+    {
+        _reviewService = reviewService;
+    }
 
     /// <summary>
     /// Retrieves all reviews
@@ -18,8 +22,8 @@ public class ReviewController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<ReviewDto>> GetAll()
     {
-        var reviewDtos = Reviews.Select(MapToDto).ToList();
-        return Ok(reviewDtos);
+        var reviews = _reviewService.GetAllReviews();
+        return Ok(reviews);
     }
 
     /// <summary>
@@ -30,9 +34,9 @@ public class ReviewController : ControllerBase
     [HttpGet("{id:int}")]
     public ActionResult<ReviewDto> GetById(int id)
     {
-        var review = Reviews.FirstOrDefault(r => r.Id == id);
-        if (review == null) return NotFound();
-        return Ok(MapToDto(review));
+        var review = _reviewService.GetReviewById(id);
+        if (review is null) return NotFound();
+        return Ok(review);
     }
 
     /// <summary>
@@ -43,7 +47,7 @@ public class ReviewController : ControllerBase
     [HttpGet("byBean/{beanId:int}")]
     public ActionResult<IEnumerable<ReviewDto>> GetByBeanId(int beanId)
     {
-        var reviews = Reviews.Where(r => r.BeanId == beanId).Select(MapToDto).ToList();
+        var reviews = _reviewService.GetReviewsByBeanId(beanId);
         return Ok(reviews);
     }
 
@@ -55,7 +59,7 @@ public class ReviewController : ControllerBase
     [HttpGet("byUser/{userId:int}")]
     public ActionResult<IEnumerable<ReviewDto>> GetByUserId(int userId)
     {
-        var reviews = Reviews.Where(r => r.UserId == userId).Select(MapToDto).ToList();
+        var reviews = _reviewService.GetReviewsByUserId(userId);
         return Ok(reviews);
     }
 
@@ -63,29 +67,20 @@ public class ReviewController : ControllerBase
     /// Creates a new review
     /// </summary>
     /// <param name="createDto">The review data to create</param>
-    /// <param name="userId">ID of the user creating the review (from auth context in a real app)</param>
+    /// <param name="userId">ID of the user creating the review</param>
     /// <returns>The created review with its new ID</returns>
     [HttpPost]
     public ActionResult<ReviewDto> Create(CreateReviewDto createDto, [FromQuery] int userId)
     {
-        if (Reviews.Any(r => r.UserId == userId && r.BeanId == createDto.BeanId))
+        try
         {
-            return BadRequest(new { Message = "User has already reviewed this bean" });
+            var review = _reviewService.CreateReview(createDto, userId);
+            return CreatedAtAction(nameof(GetById), new { id = review.Id }, review);
         }
-
-        var review = new Review
+        catch (InvalidOperationException ex)
         {
-            Id = _nextId++,
-            UserId = userId,
-            BeanId = createDto.BeanId,
-            Rating = createDto.Rating,
-            Comment = createDto.Comment,
-            User = new User { Id = userId },
-            Bean = new Bean { Id = createDto.BeanId }
-        };
-
-        Reviews.Add(review);
-        return CreatedAtAction(nameof(GetById), new { id = review.Id }, MapToDto(review));
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -98,13 +93,8 @@ public class ReviewController : ControllerBase
     [HttpPut("{id:int}")]
     public IActionResult Update(int id, UpdateReviewDto updateDto, [FromQuery] int userId)
     {
-        var review = Reviews.FirstOrDefault(r => r.Id == id);
-        if (review == null) return NotFound();
-
-        review.Rating = updateDto.Rating;
-        review.Comment = updateDto.Comment;
-        review.UpdatedAt = DateTime.UtcNow;
-
+        var success = _reviewService.UpdateReview(id, updateDto, userId);
+        if (!success) return NotFound();
         return NoContent();
     }
 
@@ -116,26 +106,8 @@ public class ReviewController : ControllerBase
     [HttpDelete("{id:int}")]
     public IActionResult Delete(int id)
     {
-        var review = Reviews.FirstOrDefault(r => r.Id == id);
-        if (review == null) return NotFound();
-
-        Reviews.Remove(review);
+        var success = _reviewService.DeleteReview(id);
+        if (!success) return NotFound();
         return NoContent();
-    }
-
-    private static ReviewDto MapToDto(Review review)
-    {
-        return new ReviewDto
-        {
-            Id = review.Id,
-            UserId = review.UserId,
-            Username = review.User?.Username ?? string.Empty,
-            BeanId = review.BeanId,
-            BeanName = review.Bean?.Name ?? string.Empty,
-            Rating = review.Rating,
-            Comment = review.Comment,
-            CreatedAt = review.CreatedAt,
-            UpdatedAt = review.UpdatedAt
-        };
     }
 }
