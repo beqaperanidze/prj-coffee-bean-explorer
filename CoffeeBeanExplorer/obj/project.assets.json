@@ -629,6 +629,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
+          "BCrypt.Net-Next": "4.0.3",
           "CoffeeBeanExplorer.Domain": "1.0.0"
         },
         "compile": {
@@ -646,6 +647,19 @@
         },
         "runtime": {
           "bin/placeholder/CoffeeBeanExplorer.Domain.dll": {}
+        }
+      },
+      "CoffeeBeanExplorer.Infrastructure/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "CoffeeBeanExplorer.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/CoffeeBeanExplorer.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CoffeeBeanExplorer.Infrastructure.dll": {}
         }
       }
     }
@@ -1796,6 +1810,11 @@
       "type": "project",
       "path": "../CoffeeBeanExplorer.Domain/CoffeeBeanExplorer.Domain.csproj",
       "msbuildProject": "../CoffeeBeanExplorer.Domain/CoffeeBeanExplorer.Domain.csproj"
+    },
+    "CoffeeBeanExplorer.Infrastructure/1.0.0": {
+      "type": "project",
+      "path": "../CoffeeBeanExplorer.Infrastructure/CoffeeBeanExplorer.Infrastructure.csproj",
+      "msbuildProject": "../CoffeeBeanExplorer.Infrastructure/CoffeeBeanExplorer.Infrastructure.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -1805,6 +1824,7 @@
       "BCrypt.Net-Next >= 4.0.3",
       "CoffeeBeanExplorer.Application >= 1.0.0",
       "CoffeeBeanExplorer.Domain >= 1.0.0",
+      "CoffeeBeanExplorer.Infrastructure >= 1.0.0",
       "Grpc.AspNetCore >= 2.71.0",
       "Grpc.Tools >= 2.72.0",
       "Microsoft.AspNetCore.Mvc.Versioning >= 5.1.0",
@@ -1843,6 +1863,9 @@
             },
             "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj": {
               "projectPath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Domain\\CoffeeBeanExplorer.Domain.csproj"
+            },
+            "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Infrastructure\\CoffeeBeanExplorer.Infrastructure.csproj": {
+              "projectPath": "D:\\RiderProjects\\CoffeeBeanExplorer\\CoffeeBeanExplorer.Infrastructure\\CoffeeBeanExplorer.Infrastructure.csproj"
             }
           }
         }

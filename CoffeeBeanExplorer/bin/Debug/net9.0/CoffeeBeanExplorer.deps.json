@@ -13,6 +13,7 @@
           "BCrypt.Net-Next": "4.0.3",
           "CoffeeBeanExplorer.Application": "1.0.0",
           "CoffeeBeanExplorer.Domain": "1.0.0",
+          "CoffeeBeanExplorer.Infrastructure": "1.0.0",
           "Grpc.AspNetCore": "2.71.0",
           "Grpc.Tools": "2.72.0",
           "Microsoft.AspNetCore.Mvc.Versioning": "5.1.0",
@@ -339,6 +340,7 @@
       },
       "CoffeeBeanExplorer.Application/1.0.0": {
         "dependencies": {
+          "BCrypt.Net-Next": "4.0.3",
           "CoffeeBeanExplorer.Domain": "1.0.0"
         },
         "runtime": {
@@ -351,6 +353,17 @@
       "CoffeeBeanExplorer.Domain/1.0.0": {
         "runtime": {
           "CoffeeBeanExplorer.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "CoffeeBeanExplorer.Infrastructure/1.0.0": {
+        "dependencies": {
+          "CoffeeBeanExplorer.Domain": "1.0.0"
+        },
+        "runtime": {
+          "CoffeeBeanExplorer.Infrastructure.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -636,6 +649,11 @@
       "sha512": ""
     },
     "CoffeeBeanExplorer.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "CoffeeBeanExplorer.Infrastructure/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

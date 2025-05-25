@@ -1,5 +1,10 @@
 using System.Reflection;
+using CoffeeBeanExplorer.Application.Services.Implementations;
+using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Configuration;
+using CoffeeBeanExplorer.Domain.Models;
+using CoffeeBeanExplorer.Domain.Repositories;
+using CoffeeBeanExplorer.Infrastructure.Repositories;
 using CoffeeBeanExplorer.Services;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -44,6 +49,19 @@ builder.Services.AddRateLimiter(options =>
         config.QueueLimit = rateLimitSettings?.QueueLimit ?? 10;
     });
 });
+
+builder.Services.AddSingleton<IBeanRepository, BeanRepository>();
+builder.Services.AddSingleton<IOriginRepository, OriginRepository>();
+builder.Services.AddSingleton<IReviewRepository, ReviewRepository>();
+builder.Services.AddSingleton<ITagRepository, TagRepository>();
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IUserListRepository, UserListRepository>();
+builder.Services.AddScoped<IBeanService, BeanService>();
+builder.Services.AddScoped<IOriginService, OriginService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserListService, UserListService>();
 
 var app = builder.Build();
 

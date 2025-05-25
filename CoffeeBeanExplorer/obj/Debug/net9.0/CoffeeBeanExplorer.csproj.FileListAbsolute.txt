@@ -60,3 +60,5 @@ D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer\bin\Debug\net9.0\CoffeeBe
 D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer\bin\Debug\net9.0\CoffeeBeanExplorer.Domain.dll
 D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer\bin\Debug\net9.0\CoffeeBeanExplorer.Application.pdb
 D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer\bin\Debug\net9.0\CoffeeBeanExplorer.Domain.pdb
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer\bin\Debug\net9.0\CoffeeBeanExplorer.Infrastructure.dll
+D:\RiderProjects\CoffeeBeanExplorer\CoffeeBeanExplorer\bin\Debug\net9.0\CoffeeBeanExplorer.Infrastructure.pdb

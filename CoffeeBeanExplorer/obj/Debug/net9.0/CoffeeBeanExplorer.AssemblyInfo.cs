@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CoffeeBeanExplorer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+734cb38a53976a6b2527c8510fbbb5203347cb6f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4cca9218e8deb4fb54612252f1c9520dbce5e36e")]
 [assembly: System.Reflection.AssemblyProductAttribute("CoffeeBeanExplorer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CoffeeBeanExplorer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

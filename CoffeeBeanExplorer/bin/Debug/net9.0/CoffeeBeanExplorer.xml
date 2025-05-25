@@ -6,73 +6,28 @@
     <members>
         <member name="M:CoffeeBeanExplorer.Controllers.BeanController.GetAll">
             <summary>
-            Retrieves all coffee beans
+            Get all coffee beans.
             </summary>
-            <returns>List of all beans</returns>
         </member>
         <member name="M:CoffeeBeanExplorer.Controllers.BeanController.GetById(System.Int32)">
             <summary>
-            Retrieves a specific beans by its ID
+            Get a bean by its ID.
             </summary>
-            <param name="id">The ID of the bean to retrieve</param>
-            <returns>The requested bean or NotFound</returns>
         </member>
         <member name="M:CoffeeBeanExplorer.Controllers.BeanController.Create(CoffeeBeanExplorer.Application.DTOs.CreateBeanDto)">
             <summary>
-            Creates a new coffee bean
+            Create a new coffee bean.
             </summary>
-            <param name="createDto">The bean data to create</param>
-            <returns>The created bean with its new ID</returns>
         </member>
         <member name="M:CoffeeBeanExplorer.Controllers.BeanController.Update(System.Int32,CoffeeBeanExplorer.Application.DTOs.UpdateBeanDto)">
             <summary>
-            Updates an existing bean by ID
+            Update an existing bean.
             </summary>
-            <param name="id">ID of the bean to update</param>
-            <param name="updateDto">New bean data</param>
-            <returns>No content on success</returns>
         </member>
         <member name="M:CoffeeBeanExplorer.Controllers.BeanController.Delete(System.Int32)">
             <summary>
-            Deletes a bean by its ID
+            Delete a bean by its ID.
             </summary>
-            <param name="id">ID of the bean to delete</param>
-            <returns>No content on success</returns>
-        </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.GetAll">
-            <summary>
-            Retrieves all bean taste notes
-            </summary>
-            <returns>List of all taste notes</returns>
-        </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.GetByBeanId(System.Int32)">
-            <summary>
-            Retrieves taste notes for a specific bean
-            </summary>
-            <param name="beanId">The ID of the bean</param>
-            <returns>List of taste notes for the bean</returns>
-        </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.GetByTasteNote(CoffeeBeanExplorer.Domain.Enums.TasteNote)">
-            <summary>
-            Retrieves beans by taste note
-            </summary>
-            <param name="tasteNote">The taste note to filter by</param>
-            <returns>List of beans with the specified taste note</returns>
-        </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.Create(CoffeeBeanExplorer.Models.DTOs.CreateBeanTasteNoteDto)">
-            <summary>
-            Creates a new bean taste note association
-            </summary>
-            <param name="createDto">The taste note data to create</param>
-            <returns>The created taste note</returns>
-        </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.BeanTasteNoteController.Delete(System.Int32,CoffeeBeanExplorer.Domain.Enums.TasteNote)">
-            <summary>
-            Deletes a taste note association from a bean
-            </summary>
-            <param name="beanId">Bean ID</param>
-            <param name="tasteNote">Taste note to remove</param>
-            <returns>No content on success</returns>
         </member>
         <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.GetAll">
             <summary>
@@ -87,14 +42,14 @@
             <param name="id">The ID of the origin to retrieve</param>
             <returns>The requested origin or NotFound</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.Create(CoffeeBeanExplorer.Models.DTOs.CreateOriginDto)">
+        <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.Create(CoffeeBeanExplorer.Application.DTOs.CreateOriginDto)">
             <summary>
             Creates a new coffee origin
             </summary>
             <param name="createDto">The origin data to create</param>
             <returns>The created origin with its new ID</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.Update(System.Int32,CoffeeBeanExplorer.Models.DTOs.UpdateOriginDto)">
+        <member name="M:CoffeeBeanExplorer.Controllers.OriginsController.Update(System.Int32,CoffeeBeanExplorer.Application.DTOs.UpdateOriginDto)">
             <summary>
             Updates an existing origin by ID
             </summary>
@@ -136,15 +91,15 @@
             <param name="userId">The user ID to get reviews for</param>
             <returns>List of reviews by the specified user</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.Create(CoffeeBeanExplorer.Models.DTOs.CreateReviewDto,System.Int32)">
+        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.Create(CoffeeBeanExplorer.Application.DTOs.CreateReviewDto,System.Int32)">
             <summary>
             Creates a new review
             </summary>
             <param name="createDto">The review data to create</param>
-            <param name="userId">ID of the user creating the review (from auth context in a real app)</param>
+            <param name="userId">ID of the user creating the review</param>
             <returns>The created review with its new ID</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.Update(System.Int32,CoffeeBeanExplorer.Models.DTOs.UpdateReviewDto,System.Int32)">
+        <member name="M:CoffeeBeanExplorer.Controllers.ReviewController.Update(System.Int32,CoffeeBeanExplorer.Application.DTOs.UpdateReviewDto,System.Int32)">
             <summary>
             Updates an existing review by ID
             </summary>
@@ -160,6 +115,64 @@
             <param name="id">ID of the review to delete</param>
             <returns>No content on success</returns>
         </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.TagController.GetAll">
+            <summary>
+            Retrieves all tags
+            </summary>
+            <returns>List of all tags</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.TagController.GetById(System.Int32)">
+            <summary>
+            Retrieves a specific tag by its ID
+            </summary>
+            <param name="id">The ID of the tag to retrieve</param>
+            <returns>The requested tag or NotFound</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.TagController.GetByBeanId(System.Int32)">
+            <summary>
+            Retrieves all tags associated with a specific bean
+            </summary>
+            <param name="beanId">The bean ID to get tags for</param>
+            <returns>List of tags for the specified bean</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.TagController.Create(CoffeeBeanExplorer.Application.DTOs.CreateTagDto)">
+            <summary>
+            Creates a new tag
+            </summary>
+            <param name="dto">The tag data to create</param>
+            <returns>The created tag with its new ID</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.TagController.Update(System.Int32,CoffeeBeanExplorer.Application.DTOs.UpdateTagDto)">
+            <summary>
+            Updates an existing tag by ID
+            </summary>
+            <param name="id">ID of the tag to update</param>
+            <param name="dto">New tag data</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.TagController.Delete(System.Int32)">
+            <summary>
+            Deletes a tag by its ID
+            </summary>
+            <param name="id">ID of the tag to delete</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.TagController.AddTagToBean(System.Int32,System.Int32)">
+            <summary>
+            Associates a tag with a bean
+            </summary>
+            <param name="tagId">ID of the tag</param>
+            <param name="beanId">ID of the bean</param>
+            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.TagController.RemoveTagFromBean(System.Int32,System.Int32)">
+            <summary>
+            Removes a tag from a bean
+            </summary>
+            <param name="tagId">ID of the tag</param>
+            <param name="beanId">ID of the bean</param>
+            <returns>No content on success</returns>
+        </member>
         <member name="M:CoffeeBeanExplorer.Controllers.UserController.GetAll">
             <summary>
             Retrieves all users
@@ -173,14 +186,14 @@
             <param name="id">The ID of the user to retrieve</param>
             <returns>The requested user or NotFound</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserController.Create(CoffeeBeanExplorer.Models.DTOs.UserRegistrationDto)">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserController.Create(CoffeeBeanExplorer.Application.DTOs.UserRegistrationDto)">
             <summary>
             Creates a new user
             </summary>
             <param name="userRegistrationDto">The user data for registration</param>
             <returns>The created user with its new ID</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserController.Update(System.Int32,CoffeeBeanExplorer.Models.DTOs.UserUpdateDto)">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserController.Update(System.Int32,CoffeeBeanExplorer.Application.DTOs.UserUpdateDto)">
             <summary>
             Updates an existing user by ID
             </summary>
@@ -195,62 +208,50 @@
             <param name="id">ID of the user to delete</param>
             <returns>No content on success</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserController.MapToDto(CoffeeBeanExplorer.Domain.Models.User)">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListsController.GetAll">
             <summary>
-            Maps a User entity to UserDto
+            Gets all lists
             </summary>
-            <param name="user">User entity to convert</param>
-            <returns>UserDto without sensitive information</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.GetAll">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListsController.GetById(System.Int32)">
             <summary>
-            Retrieves all user list entries
+            Gets a specific list by ID
             </summary>
-            <returns>List of all entries</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.GetById(System.Int32)">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListsController.GetUserLists(System.Int32)">
             <summary>
-            Retrieves a specific user list entry by its ID
+            Gets all lists for a specific user
             </summary>
-            <param name="id">The ID of the entry to retrieve</param>
-            <returns>The requested entry or NotFound</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.GetByUserId(System.Int32)">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListsController.Create(CoffeeBeanExplorer.Application.DTOs.CreateUserListDto,System.Int32)">
             <summary>
-            Retrieves all list entries for a specific user
+            Creates a new list for the current user
             </summary>
-            <param name="userId">The user ID to get entries for</param>
-            <returns>List of entries for the specified user</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.GetByUserIdAndType(System.Int32,CoffeeBeanExplorer.Domain.Enums.CollectionType)">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListsController.Update(System.Int32,CoffeeBeanExplorer.Application.DTOs.UpdateUserListDto,System.Int32)">
             <summary>
-            Retrieves all list entries of a specific type for a user
+            Updates an existing list
             </summary>
-            <param name="userId">The user ID</param>
-            <param name="type">The collection type</param>
-            <returns>List of entries of specified type for the user</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.Create(CoffeeBeanExplorer.Models.DTOs.CreateUserListDto)">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListsController.Delete(System.Int32,System.Int32)">
             <summary>
-            Creates a new user list entry
+            Deletes a list
             </summary>
-            <param name="createDto">The entry data to create</param>
-            <returns>The created entry with its new ID</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.Update(System.Int32,CoffeeBeanExplorer.Models.DTOs.UpdateUserListDto)">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListsController.GetBeansInList(System.Int32)">
             <summary>
-            Updates an existing user list entry by ID
+            Gets all beans in a list
             </summary>
-            <param name="id">ID of the entry to update</param>
-            <param name="updateDto">New entry data</param>
-            <returns>No content on success</returns>
         </member>
-        <member name="M:CoffeeBeanExplorer.Controllers.UserListController.Delete(System.Int32)">
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListsController.AddBeanToList(System.Int32,System.Int32,System.Int32)">
             <summary>
-            Deletes a user list entry by its ID
+            Adds a bean to a list
             </summary>
-            <param name="id">ID of the entry to delete</param>
-            <returns>No content on success</returns>
+        </member>
+        <member name="M:CoffeeBeanExplorer.Controllers.UserListsController.RemoveBeanFromList(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Removes a bean from a list
+            </summary>
         </member>
         <member name="T:CoffeeBeanExplorer.CoffeeReflection">
             <summary>Holder for reflection information generated from protos/coffee.proto</summary>
