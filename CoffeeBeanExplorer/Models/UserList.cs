@@ -1,4 +1,5 @@
-﻿using CoffeeBeanExplorer.Enums;
+﻿using System.Text.Json.Serialization;
+using CoffeeBeanExplorer.Enums;
 
 namespace CoffeeBeanExplorer.Models;
 
@@ -10,6 +11,6 @@ public class UserList
     public CollectionType Type { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public virtual User User { get; set; } = null!;
-    public virtual Bean Bean { get; set; } = null!;
+    [JsonIgnore] public virtual User User { get; set; } = null!;
+    [JsonIgnore] public virtual Bean Bean { get; set; } = null!;
 }

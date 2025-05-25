@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CoffeeBeanExplorer.Models;
 
@@ -19,7 +20,7 @@ public class Review
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    [Required] public User User { get; set; } = null!;
+    [Required] [JsonIgnore] public User User { get; set; } = null!;
 
-    [Required] public Bean Bean { get; set; } = null!;
+    [Required] [JsonIgnore] public Bean Bean { get; set; } = null!;
 }
