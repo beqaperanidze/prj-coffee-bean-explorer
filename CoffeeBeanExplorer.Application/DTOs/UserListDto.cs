@@ -13,6 +13,7 @@ public class UserListDto
     public CollectionType Type { get; set; }
     public string CollectionTypeName => Type.ToString();
     public DateTime CreatedAt { get; set; }
+    
 }
 
 public class CreateUserListDto
