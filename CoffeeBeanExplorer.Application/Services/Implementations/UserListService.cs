@@ -100,8 +100,7 @@ public class UserListService : IUserListService
             Name = list.Name,
             UserId = list.UserId,
             CreatedAt = list.CreatedAt,
-            UpdatedAt = list.UpdatedAt,
-            BeansCount = list.Items?.Count ?? 0
+            UpdatedAt = list.UpdatedAt
         };
     }
 }
