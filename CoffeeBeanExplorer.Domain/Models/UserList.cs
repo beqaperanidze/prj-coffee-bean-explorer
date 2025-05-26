@@ -1,16 +1,12 @@
-﻿using System.Text.Json.Serialization;
-using CoffeeBeanExplorer.Domain.Enums;
-
-namespace CoffeeBeanExplorer.Domain.Models;
+﻿namespace CoffeeBeanExplorer.Domain.Models;
 
 public class UserList
 {
     public int Id { get; set; }
     public int UserId { get; set; }
-    public int BeanId { get; set; }
-    public CollectionType Type { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    [JsonIgnore] public virtual User User { get; set; } = null!;
-    [JsonIgnore] public virtual Bean Bean { get; set; } = null!;
+    public string Name { get; set; } 
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public User? User { get; set; }
+    public ICollection<ListItem> Items { get; set; } = new List<ListItem>();
 }

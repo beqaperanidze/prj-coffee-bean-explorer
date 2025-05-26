@@ -1,4 +1,4 @@
-﻿namespace CoffeeBeanExplorer.Models.DTOs;
+﻿namespace CoffeeBeanExplorer.Application.DTOs;
 
 public class OriginDto
 {
@@ -6,7 +6,7 @@ public class OriginDto
     public string Country { get; set; } = string.Empty;
     public string? Region { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime UpdDateTime { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
 
 public class CreateOriginDto

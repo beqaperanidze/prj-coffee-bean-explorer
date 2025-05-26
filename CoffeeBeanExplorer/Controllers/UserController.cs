@@ -1,6 +1,5 @@
-﻿using CoffeeBeanExplorer.Domain.Models;
-using CoffeeBeanExplorer.Models;
-using CoffeeBeanExplorer.Models.DTOs;
+﻿using CoffeeBeanExplorer.Application.DTOs;
+using CoffeeBeanExplorer.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeBeanExplorer.Controllers;
@@ -141,8 +140,8 @@ public class UserController : ControllerBase
             Id = user.Id,
             Username = user.Username,
             Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
+            FirstName = user.FirstName ?? string.Empty,
+            LastName = user.LastName ?? string.Empty,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
             Role = user.Role
