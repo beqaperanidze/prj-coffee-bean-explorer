@@ -14,25 +14,26 @@ public class UserService : IUserService
         _repository = repository;
     }
 
-    public IEnumerable<UserDto> GetAllUsers()
+    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
-        return _repository.GetAll().Select(MapToDto);
+        var users = await _repository.GetAllAsync();
+        return users.Select(MapToDto);
     }
 
-    public UserDto? GetUserById(int id)
+    public async Task<UserDto?> GetUserByIdAsync(int id)
     {
-        var user = _repository.GetById(id);
+        var user = await _repository.GetByIdAsync(id);
         return user != null ? MapToDto(user) : null;
     }
 
-    public UserDto RegisterUser(UserRegistrationDto dto)
+    public async Task<UserDto> RegisterUserAsync(UserRegistrationDto dto)
     {
-        if (_repository.GetByUsername(dto.Username) != null)
+        if (await _repository.GetByUsernameAsync(dto.Username) != null)
         {
             throw new InvalidOperationException("Username is already taken");
         }
 
-        if (_repository.GetByEmail(dto.Email) != null)
+        if (await _repository.GetByEmailAsync(dto.Email) != null)
         {
             throw new InvalidOperationException("Email is already registered");
         }
@@ -46,18 +47,18 @@ public class UserService : IUserService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
         };
 
-        var addedUser = _repository.Add(user);
+        var addedUser = await _repository.AddAsync(user);
         return MapToDto(addedUser);
     }
 
-    public UserDto? UpdateUser(int id, UserUpdateDto dto)
+    public async Task<UserDto?> UpdateUserAsync(int id, UserUpdateDto dto)
     {
-        var user = _repository.GetById(id);
+        var user = await _repository.GetByIdAsync(id);
         if (user is null) return null;
 
         if (dto.Username != null && user.Username != dto.Username)
         {
-            if (_repository.GetByUsername(dto.Username) != null)
+            if (await _repository.GetByUsernameAsync(dto.Username) != null)
             {
                 throw new InvalidOperationException("Username is already taken");
             }
@@ -67,7 +68,7 @@ public class UserService : IUserService
 
         if (dto.Email != null && user.Email != dto.Email)
         {
-            if (_repository.GetByEmail(dto.Email) != null)
+            if (await _repository.GetByEmailAsync(dto.Email) != null)
             {
                 throw new InvalidOperationException("Email is already registered");
             }
@@ -81,12 +82,12 @@ public class UserService : IUserService
         if (dto.LastName != null)
             user.LastName = dto.LastName;
 
-        return _repository.Update(user) ? MapToDto(user) : null;
+        return await _repository.UpdateAsync(user) ? MapToDto(user) : null;
     }
 
-    public bool DeleteUser(int id)
+    public async Task<bool> DeleteUserAsync(int id)
     {
-        return _repository.Delete(id);
+        return await _repository.DeleteAsync(id);
     }
 
     private static UserDto MapToDto(User user)

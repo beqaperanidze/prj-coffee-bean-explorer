@@ -1,6 +1,7 @@
 ﻿using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
+
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
 public class BeanRepository : IBeanRepository
@@ -8,26 +9,26 @@ public class BeanRepository : IBeanRepository
     private static readonly List<Bean> _beans = [];
     private static int _nextId = 1;
 
-    public IEnumerable<Bean> GetAll() => _beans;
+    public Task<IEnumerable<Bean>> GetAllAsync() => Task.FromResult<IEnumerable<Bean>>(_beans);
 
-    public Bean? GetById(int id)
+    public Task<Bean?> GetByIdAsync(int id)
     {
-        return _beans.FirstOrDefault(b => b.Id == id);
+        return Task.FromResult(_beans.FirstOrDefault(b => b.Id == id));
     }
 
-    public Bean Add(Bean bean)
+    public Task<Bean> AddAsync(Bean bean)
     {
         bean.Id = _nextId++;
         bean.CreatedAt = DateTime.UtcNow;
         bean.UpdatedAt = DateTime.UtcNow;
         _beans.Add(bean);
-        return bean;
+        return Task.FromResult(bean);
     }
 
-    public bool Update(Bean bean)
+    public Task<bool> UpdateAsync(Bean bean)
     {
         var existingBean = _beans.FirstOrDefault(b => b.Id == bean.Id);
-        if (existingBean is null) return false;
+        if (existingBean is null) return Task.FromResult(false);
 
         existingBean.Name = bean.Name;
         existingBean.OriginId = bean.OriginId;
@@ -36,12 +37,12 @@ public class BeanRepository : IBeanRepository
         existingBean.Price = bean.Price;
         existingBean.UpdatedAt = DateTime.UtcNow;
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public bool Delete(int id)
+    public Task<bool> DeleteAsync(int id)
     {
         var bean = _beans.FirstOrDefault(b => b.Id == id);
-        return bean is not null && _beans.Remove(bean);
+        return Task.FromResult(bean is not null && _beans.Remove(bean));
     }
 }

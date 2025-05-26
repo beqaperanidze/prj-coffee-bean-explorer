@@ -1,14 +1,15 @@
 ﻿using CoffeeBeanExplorer.Domain.Models;
 
+
 namespace CoffeeBeanExplorer.Domain.Repositories;
 
 public interface IUserRepository
 {
-    IEnumerable<User> GetAll();
-    User? GetById(int id);
-    User? GetByUsername(string username);
-    User? GetByEmail(string email);
-    User Add(User user);
-    bool Update(User user);
-    bool Delete(int id);
+    Task<IEnumerable<User>> GetAllAsync();
+    Task<User?> GetByIdAsync(int id);
+    Task<User?> GetByUsernameAsync(string username);
+    Task<User?> GetByEmailAsync(string email);
+    Task<User> AddAsync(User user);
+    Task<bool> UpdateAsync(User user);
+    Task<bool> DeleteAsync(int id);
 }

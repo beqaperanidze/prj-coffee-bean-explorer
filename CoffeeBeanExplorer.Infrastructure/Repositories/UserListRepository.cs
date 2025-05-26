@@ -9,57 +9,57 @@ public class UserListRepository : IUserListRepository
     private static readonly List<ListItem> _listItems = [];
     private static int _nextId = 1;
 
-    public IEnumerable<UserList> GetAll() => _lists;
+    public Task<IEnumerable<UserList>> GetAllAsync() => Task.FromResult<IEnumerable<UserList>>(_lists);
 
-    public UserList? GetById(int id)
+    public Task<UserList?> GetByIdAsync(int id)
     {
-        return _lists.FirstOrDefault(l => l.Id == id);
+        return Task.FromResult(_lists.FirstOrDefault(l => l.Id == id));
     }
 
-    public IEnumerable<UserList> GetByUserId(int userId)
+    public Task<IEnumerable<UserList>> GetByUserIdAsync(int userId)
     {
-        return _lists.Where(l => l.UserId == userId);
+        return Task.FromResult(_lists.Where(l => l.UserId == userId));
     }
 
-    public UserList Add(UserList list)
+    public Task<UserList> AddAsync(UserList list)
     {
         list.Id = _nextId++;
         list.CreatedAt = DateTime.UtcNow;
         list.UpdatedAt = DateTime.UtcNow;
         _lists.Add(list);
-        return list;
+        return Task.FromResult(list);
     }
 
-    public bool Update(UserList list)
+    public Task<bool> UpdateAsync(UserList list)
     {
         var existingList = _lists.FirstOrDefault(l => l.Id == list.Id);
-        if (existingList is null) return false;
+        if (existingList is null) return Task.FromResult(false);
 
         existingList.Name = list.Name;
         existingList.UpdatedAt = DateTime.UtcNow;
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public bool Delete(int id)
+    public Task<bool> DeleteAsync(int id)
     {
         var list = _lists.FirstOrDefault(l => l.Id == id);
-        if (list is null) return false;
+        if (list is null) return Task.FromResult(false);
 
         _listItems.RemoveAll(li => li.ListId == id);
 
-        return _lists.Remove(list);
+        return Task.FromResult(_lists.Remove(list));
     }
 
-    public bool AddBeanToList(int listId, int beanId)
+    public Task<bool> AddBeanToListAsync(int listId, int beanId)
     {
         if (_listItems.Any(li => li.ListId == listId && li.BeanId == beanId))
         {
-            return false; 
+            return Task.FromResult(false);
         }
 
-        var list = GetById(listId);
-        if (list == null) return false;
+        var list = _lists.FirstOrDefault(l => l.Id == listId);
+        if (list == null) return Task.FromResult(false);
 
         var listItem = new ListItem
         {
@@ -72,25 +72,25 @@ public class UserListRepository : IUserListRepository
 
         _listItems.Add(listItem);
         list.Items.Add(listItem);
-        
-        return true;
+
+        return Task.FromResult(true);
     }
 
-    public bool RemoveBeanFromList(int listId, int beanId)
+    public Task<bool> RemoveBeanFromListAsync(int listId, int beanId)
     {
         var listItem = _listItems.FirstOrDefault(li => li.ListId == listId && li.BeanId == beanId);
-        if (listItem is null) return false;
+        if (listItem is null) return Task.FromResult(false);
 
-        var list = GetById(listId);
+        var list = _lists.FirstOrDefault(l => l.Id == listId);
         list?.Items.Remove(listItem);
 
-        return _listItems.Remove(listItem);
+        return Task.FromResult(_listItems.Remove(listItem));
     }
 
-    public IEnumerable<Bean> GetBeansInList(int listId)
+    public Task<IEnumerable<Bean>> GetBeansInListAsync(int listId)
     {
-        return _listItems
+        return Task.FromResult(_listItems
             .Where(li => li.ListId == listId)
-            .Select(li => li.Bean ?? new Bean { Id = li.BeanId });
+            .Select(li => li.Bean ?? new Bean { Id = li.BeanId }));
     }
 }

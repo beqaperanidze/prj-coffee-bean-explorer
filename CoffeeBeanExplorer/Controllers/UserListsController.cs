@@ -6,110 +6,83 @@ namespace CoffeeBeanExplorer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserListsController : ControllerBase
+public class UserListController : ControllerBase
 {
     private readonly IUserListService _userListService;
 
-    public UserListsController(IUserListService userListService)
+    public UserListController(IUserListService userListService)
     {
         _userListService = userListService;
     }
 
-    /// <summary>
-    /// Gets all lists
-    /// </summary>
     [HttpGet]
-    public ActionResult<IEnumerable<UserListDto>> GetAll()
+    public async Task<ActionResult<IEnumerable<UserListDto>>> GetAll()
     {
-        var lists = _userListService.GetAllLists();
+        var lists = await _userListService.GetAllListsAsync();
         return Ok(lists);
     }
 
-    /// <summary>
-    /// Gets a specific list by ID
-    /// </summary>
     [HttpGet("{id:int}")]
-    public ActionResult<UserListDto> GetById(int id)
+    public async Task<ActionResult<UserListDto>> GetById(int id)
     {
-        var list = _userListService.GetListById(id);
+        var list = await _userListService.GetListByIdAsync(id);
         if (list is null) return NotFound();
-
         return Ok(list);
     }
 
-    /// <summary>
-    /// Gets all lists for a specific user
-    /// </summary>
-    [HttpGet("user/{userId:int}")]
-    public ActionResult<IEnumerable<UserListDto>> GetUserLists(int userId)
+    [HttpGet("users/{userId:int}")]
+    public async Task<ActionResult<IEnumerable<UserListDto>>> GetUserLists(int userId)
     {
-        var lists = _userListService.GetListsByUserId(userId);
+        var lists = await _userListService.GetListsByUserIdAsync(userId);
         return Ok(lists);
     }
 
-    /// <summary>
-    /// Creates a new list for the current user
-    /// </summary>
     [HttpPost]
-    public ActionResult<UserListDto> Create([FromBody] CreateUserListDto dto, [FromQuery] int userId)
+    public async Task<ActionResult<UserListDto>> Create([FromBody] CreateUserListDto dto, [FromQuery] int userId)
     {
-        var list = _userListService.CreateList(dto, userId);
+        var list = await _userListService.CreateListAsync(dto, userId);
         return CreatedAtAction(nameof(GetById), new { id = list.Id }, list);
     }
 
-    /// <summary>
-    /// Updates an existing list
-    /// </summary>
     [HttpPut("{id:int}")]
-    public ActionResult<UserListDto> Update(int id, [FromBody] UpdateUserListDto dto, [FromQuery] int userId)
+    public async Task<ActionResult<UserListDto>> Update(int id, [FromBody] UpdateUserListDto dto,
+        [FromQuery] int userId)
     {
-        var list = _userListService.UpdateList(id, dto, userId);
+        var list = await _userListService.UpdateListAsync(id, dto, userId);
         if (list is null) return NotFound();
         return Ok(list);
     }
 
-    /// <summary>
-    /// Deletes a list
-    /// </summary>
     [HttpDelete("{id:int}")]
-    public ActionResult Delete(int id, [FromQuery] int userId)
+    public async Task<ActionResult> Delete(int id, [FromQuery] int userId)
     {
-        var success = _userListService.DeleteList(id, userId);
+        var success = await _userListService.DeleteListAsync(id, userId);
         if (!success) return NotFound();
         return NoContent();
     }
 
-    /// <summary>
-    /// Gets all beans in a list
-    /// </summary>
     [HttpGet("{id:int}/beans")]
-    public ActionResult<IEnumerable<BeanDto>> GetBeansInList(int id)
+    public async Task<ActionResult<IEnumerable<BeanDto>>> GetBeansInList(int id)
     {
-        var list = _userListService.GetListById(id);
+        var list = await _userListService.GetListByIdAsync(id);
         if (list is null) return NotFound();
 
-        var beans = _userListService.GetBeansInList(id);
+        var beans = await _userListService.GetBeansInListAsync(id);
         return Ok(beans);
     }
 
-    /// <summary>
-    /// Adds a bean to a list
-    /// </summary>
     [HttpPost("{listId:int}/beans/{beanId:int}")]
-    public ActionResult AddBeanToList(int listId, int beanId, [FromQuery] int userId)
+    public async Task<ActionResult> AddBeanToList(int listId, int beanId, [FromQuery] int userId)
     {
-        var success = _userListService.AddBeanToList(listId, beanId, userId);
+        var success = await _userListService.AddBeanToListAsync(listId, beanId, userId);
         if (!success) return BadRequest();
         return NoContent();
     }
 
-    /// <summary>
-    /// Removes a bean from a list
-    /// </summary>
     [HttpDelete("{listId:int}/beans/{beanId:int}")]
-    public ActionResult RemoveBeanFromList(int listId, int beanId, [FromQuery] int userId)
+    public async Task<ActionResult> RemoveBeanFromList(int listId, int beanId, [FromQuery] int userId)
     {
-        var success = _userListService.RemoveBeanFromList(listId, beanId, userId);
+        var success = await _userListService.RemoveBeanFromListAsync(listId, beanId, userId);
         if (!success) return NotFound();
         return NoContent();
     }

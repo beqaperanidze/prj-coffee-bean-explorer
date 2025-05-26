@@ -3,6 +3,7 @@ using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
+
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
 public class TagService : ITagService
@@ -14,56 +15,58 @@ public class TagService : ITagService
         _repository = repository;
     }
 
-    public IEnumerable<TagDto> GetAllTags()
+    public async Task<IEnumerable<TagDto>> GetAllTagsAsync()
     {
-        return _repository.GetAll().Select(MapToDto);
+        var tags = await _repository.GetAllAsync();
+        return tags.Select(MapToDto);
     }
 
-    public TagDto? GetTagById(int id)
+    public async Task<TagDto?> GetTagByIdAsync(int id)
     {
-        var tag = _repository.GetById(id);
+        var tag = await _repository.GetByIdAsync(id);
         return tag != null ? MapToDto(tag) : null;
     }
 
-    public IEnumerable<TagDto> GetTagsByBeanId(int beanId)
+    public async Task<IEnumerable<TagDto>> GetTagsByBeanIdAsync(int beanId)
     {
-        return _repository.GetByBeanId(beanId).Select(MapToDto);
+        var tags = await _repository.GetByBeanIdAsync(beanId);
+        return tags.Select(MapToDto);
     }
 
-    public TagDto CreateTag(CreateTagDto dto)
+    public async Task<TagDto> CreateTagAsync(CreateTagDto dto)
     {
         var tag = new Tag
         {
             Name = dto.Name
         };
 
-        var addedTag = _repository.Add(tag);
+        var addedTag = await _repository.AddAsync(tag);
         return MapToDto(addedTag);
     }
 
-    public bool UpdateTag(int id, UpdateTagDto dto)
+    public async Task<bool> UpdateTagAsync(int id, UpdateTagDto dto)
     {
-        var tag = _repository.GetById(id);
+        var tag = await _repository.GetByIdAsync(id);
         if (tag is null) return false;
 
         tag.Name = dto.Name;
 
-        return _repository.Update(tag);
+        return await _repository.UpdateAsync(tag);
     }
 
-    public bool DeleteTag(int id)
+    public async Task<bool> DeleteTagAsync(int id)
     {
-        return _repository.Delete(id);
+        return await _repository.DeleteAsync(id);
     }
 
-    public bool AddTagToBean(int tagId, int beanId)
+    public async Task<bool> AddTagToBeanAsync(int tagId, int beanId)
     {
-        return _repository.AddTagToBean(tagId, beanId);
+        return await _repository.AddTagToBeanAsync(tagId, beanId);
     }
 
-    public bool RemoveTagFromBean(int tagId, int beanId)
+    public async Task<bool> RemoveTagFromBeanAsync(int tagId, int beanId)
     {
-        return _repository.RemoveTagFromBean(tagId, beanId);
+        return await _repository.RemoveTagFromBeanAsync(tagId, beanId);
     }
 
     private static TagDto MapToDto(Tag tag)

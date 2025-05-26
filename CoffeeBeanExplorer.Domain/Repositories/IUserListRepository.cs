@@ -4,13 +4,13 @@ namespace CoffeeBeanExplorer.Domain.Repositories;
 
 public interface IUserListRepository
 {
-    IEnumerable<UserList> GetAll();
-    UserList? GetById(int id);
-    IEnumerable<UserList> GetByUserId(int userId);
-    UserList Add(UserList list);
-    bool Update(UserList list);
-    bool Delete(int id);
-    bool AddBeanToList(int listId, int beanId);
-    bool RemoveBeanFromList(int listId, int beanId);
-    IEnumerable<Bean> GetBeansInList(int listId);
+    Task<IEnumerable<UserList>> GetAllAsync();
+    Task<UserList?> GetByIdAsync(int id);
+    Task<IEnumerable<UserList>> GetByUserIdAsync(int userId);
+    Task<UserList> AddAsync(UserList list);
+    Task<bool> UpdateAsync(UserList list);
+    Task<bool> DeleteAsync(int id);
+    Task<bool> AddBeanToListAsync(int listId, int beanId);
+    Task<bool> RemoveBeanFromListAsync(int listId, int beanId);
+    Task<IEnumerable<Bean>> GetBeansInListAsync(int listId);
 }

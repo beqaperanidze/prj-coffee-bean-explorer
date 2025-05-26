@@ -20,9 +20,9 @@ public class UserController : ControllerBase
     /// </summary>
     /// <returns>List of all users</returns>
     [HttpGet]
-    public ActionResult<IEnumerable<UserDto>> GetAll()
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
     {
-        var users = _userService.GetAllUsers();
+        var users = await _userService.GetAllUsersAsync();
         return Ok(users);
     }
 
@@ -32,9 +32,9 @@ public class UserController : ControllerBase
     /// <param name="id">The ID of the user to retrieve</param>
     /// <returns>The requested user or NotFound</returns>
     [HttpGet("{id:int}")]
-    public ActionResult<UserDto> GetById(int id)
+    public async Task<ActionResult<UserDto>> GetById(int id)
     {
-        var user = _userService.GetUserById(id);
+        var user = await _userService.GetUserByIdAsync(id);
         if (user == null) return NotFound();
         return Ok(user);
     }
@@ -45,11 +45,11 @@ public class UserController : ControllerBase
     /// <param name="userRegistrationDto">The user data for registration</param>
     /// <returns>The created user with its new ID</returns>
     [HttpPost]
-    public ActionResult<UserDto> Create(UserRegistrationDto userRegistrationDto)
+    public async Task<ActionResult<UserDto>> Create(UserRegistrationDto userRegistrationDto)
     {
         try
         {
-            var user = _userService.RegisterUser(userRegistrationDto);
+            var user = await _userService.RegisterUserAsync(userRegistrationDto);
             return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
         }
         catch (InvalidOperationException ex)
@@ -65,11 +65,11 @@ public class UserController : ControllerBase
     /// <param name="userUpdateDto">New user data</param>
     /// <returns>The updated user data</returns>
     [HttpPut("{id:int}")]
-    public ActionResult<UserDto> Update(int id, UserUpdateDto userUpdateDto)
+    public async Task<ActionResult<UserDto>> Update(int id, UserUpdateDto userUpdateDto)
     {
         try
         {
-            var user = _userService.UpdateUser(id, userUpdateDto);
+            var user = await _userService.UpdateUserAsync(id, userUpdateDto);
             if (user == null) return NotFound();
             return Ok(user);
         }
@@ -85,9 +85,9 @@ public class UserController : ControllerBase
     /// <param name="id">ID of the user to delete</param>
     /// <returns>No content on success</returns>
     [HttpDelete("{id:int}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        var success = _userService.DeleteUser(id);
+        var success = await _userService.DeleteUserAsync(id);
         if (!success) return NotFound();
         return NoContent();
     }

@@ -1,6 +1,7 @@
 ﻿using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
+
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
 public class TagRepository : ITagRepository
@@ -9,79 +10,79 @@ public class TagRepository : ITagRepository
     private static readonly List<BeanTag> _beanTags = [];
     private static int _nextId = 1;
 
-    public IEnumerable<Tag> GetAll() => _tags;
+    public Task<IEnumerable<Tag>> GetAllAsync() => Task.FromResult<IEnumerable<Tag>>(_tags);
 
-    public Tag? GetById(int id)
+    public Task<Tag?> GetByIdAsync(int id)
     {
-        return _tags.FirstOrDefault(t => t.Id == id);
+        return Task.FromResult(_tags.FirstOrDefault(t => t.Id == id));
     }
 
-    public IEnumerable<Tag> GetByBeanId(int beanId)
+    public Task<IEnumerable<Tag>> GetByBeanIdAsync(int beanId)
     {
         var tagIds = _beanTags
             .Where(bt => bt.BeanId == beanId)
             .Select(bt => bt.TagId);
 
-        return _tags.Where(t => tagIds.Contains(t.Id));
+        return Task.FromResult(_tags.Where(t => tagIds.Contains(t.Id)));
     }
 
-    public Tag Add(Tag tag)
+    public Task<Tag> AddAsync(Tag tag)
     {
         tag.Id = _nextId++;
         tag.CreatedAt = DateTime.UtcNow;
         tag.UpdatedAt = DateTime.UtcNow;
         _tags.Add(tag);
-        return tag;
+        return Task.FromResult(tag);
     }
 
-    public bool Update(Tag tag)
+    public Task<bool> UpdateAsync(Tag tag)
     {
         var existingTag = _tags.FirstOrDefault(t => t.Id == tag.Id);
-        if (existingTag is null) return false;
+        if (existingTag is null) return Task.FromResult(false);
 
         existingTag.Name = tag.Name;
         existingTag.UpdatedAt = DateTime.UtcNow;
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public bool Delete(int id)
+    public Task<bool> DeleteAsync(int id)
     {
         var tag = _tags.FirstOrDefault(t => t.Id == id);
-        if (tag is null) return false;
+        if (tag is null) return Task.FromResult(false);
 
         _beanTags.RemoveAll(bt => bt.TagId == id);
 
-        return _tags.Remove(tag);
+        return Task.FromResult(_tags.Remove(tag));
     }
 
-    public bool AddTagToBean(int tagId, int beanId)
+    public Task<bool> AddTagToBeanAsync(int tagId, int beanId)
     {
         if (_beanTags.Any(bt => bt.TagId == tagId && bt.BeanId == beanId))
         {
-            return false; 
+            return Task.FromResult(false);
         }
 
-        var tag = GetById(tagId);
-        var bean = new Bean { Id = beanId }; 
+        var tag = _tags.FirstOrDefault(t => t.Id == tagId);
+        var bean = new Bean { Id = beanId };
 
-        if (tag == null) return false;
+        if (tag == null) return Task.FromResult(false);
 
-        _beanTags.Add(new BeanTag 
-        { 
-            BeanId = beanId, 
+        _beanTags.Add(new BeanTag
+        {
+            BeanId = beanId,
             TagId = tagId,
             CreatedAt = DateTime.UtcNow,
             Bean = bean,
             Tag = tag
         });
-        
-        return true;
+
+        return Task.FromResult(true);
     }
 
-    public bool RemoveTagFromBean(int tagId, int beanId)
+    public Task<bool> RemoveTagFromBeanAsync(int tagId, int beanId)
     {
         var beanTag = _beanTags.FirstOrDefault(bt => bt.TagId == tagId && bt.BeanId == beanId);
-        return beanTag is not null && _beanTags.Remove(beanTag);
+        return Task.FromResult(beanTag is not null && _beanTags.Remove(beanTag));
     }
 }

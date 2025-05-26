@@ -14,30 +14,33 @@ public class ReviewService : IReviewService
         _repository = repository;
     }
 
-    public IEnumerable<ReviewDto> GetAllReviews()
+    public async Task<IEnumerable<ReviewDto>> GetAllReviewsAsync()
     {
-        return _repository.GetAll().Select(MapToDto);
+        var reviews = await _repository.GetAllAsync();
+        return reviews.Select(MapToDto);
     }
 
-    public ReviewDto? GetReviewById(int id)
+    public async Task<ReviewDto?> GetReviewByIdAsync(int id)
     {
-        var review = _repository.GetById(id);
+        var review = await _repository.GetByIdAsync(id);
         return review != null ? MapToDto(review) : null;
     }
 
-    public IEnumerable<ReviewDto> GetReviewsByBeanId(int beanId)
+    public async Task<IEnumerable<ReviewDto>> GetReviewsByBeanIdAsync(int beanId)
     {
-        return _repository.GetByBeanId(beanId).Select(MapToDto);
+        var reviews = await _repository.GetByBeanIdAsync(beanId);
+        return reviews.Select(MapToDto);
     }
 
-    public IEnumerable<ReviewDto> GetReviewsByUserId(int userId)
+    public async Task<IEnumerable<ReviewDto>> GetReviewsByUserIdAsync(int userId)
     {
-        return _repository.GetByUserId(userId).Select(MapToDto);
+        var reviews = await _repository.GetByUserIdAsync(userId);
+        return reviews.Select(MapToDto);
     }
 
-    public ReviewDto CreateReview(CreateReviewDto dto, int userId)
+    public async Task<ReviewDto> CreateReviewAsync(CreateReviewDto dto, int userId)
     {
-        if (_repository.HasUserReviewedBean(userId, dto.BeanId))
+        if (await _repository.HasUserReviewedBeanAsync(userId, dto.BeanId))
         {
             throw new InvalidOperationException("User has already reviewed this bean");
         }
@@ -52,23 +55,24 @@ public class ReviewService : IReviewService
             Bean = new Bean { Id = dto.BeanId }
         };
 
-        var addedReview = _repository.Add(review);
+        var addedReview = await _repository.AddAsync(review);
         return MapToDto(addedReview);
     }
 
-    public bool UpdateReview(int id, UpdateReviewDto dto, int userId)
+    public async Task<bool> UpdateReviewAsync(int id, UpdateReviewDto dto, int userId)
     {
-        var review = _repository.GetById(id);
-        if (review is null) return false;
+        var review = await _repository.GetByIdAsync(id);
+        if (review is null || review.UserId != userId) return false;
+
         review.Rating = dto.Rating;
         review.Comment = dto.Comment;
 
-        return _repository.Update(review);
+        return await _repository.UpdateAsync(review);
     }
 
-    public bool DeleteReview(int id)
+    public async Task<bool> DeleteReviewAsync(int id)
     {
-        return _repository.Delete(id);
+        return await _repository.DeleteAsync(id);
     }
 
     private static ReviewDto MapToDto(Review review)

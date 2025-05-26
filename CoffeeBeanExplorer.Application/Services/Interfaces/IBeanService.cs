@@ -1,12 +1,13 @@
 ﻿using CoffeeBeanExplorer.Application.DTOs;
 
+
 namespace CoffeeBeanExplorer.Application.Services.Interfaces;
 
 public interface IBeanService
 {
-    IEnumerable<BeanDto> GetAllBeans();
-    BeanDto? GetBeanById(int id);
-    BeanDto CreateBean(CreateBeanDto dto);
-    bool UpdateBean(int id, UpdateBeanDto dto);
-    bool DeleteBean(int id);
+    Task<IEnumerable<BeanDto>> GetAllBeansAsync();
+    Task<BeanDto?> GetBeanByIdAsync(int id);
+    Task<BeanDto> CreateBeanAsync(CreateBeanDto dto);
+    Task<bool> UpdateBeanAsync(int id, UpdateBeanDto dto);
+    Task<bool> DeleteBeanAsync(int id);
 }

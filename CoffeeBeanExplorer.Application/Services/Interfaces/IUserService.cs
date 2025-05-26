@@ -4,9 +4,9 @@ namespace CoffeeBeanExplorer.Application.Services.Interfaces;
 
 public interface IUserService
 {
-    IEnumerable<UserDto> GetAllUsers();
-    UserDto? GetUserById(int id);
-    UserDto RegisterUser(UserRegistrationDto dto);
-    UserDto? UpdateUser(int id, UserUpdateDto dto);
-    bool DeleteUser(int id);
+    Task<IEnumerable<UserDto>> GetAllUsersAsync();
+    Task<UserDto?> GetUserByIdAsync(int id);
+    Task<UserDto> RegisterUserAsync(UserRegistrationDto dto);
+    Task<UserDto?> UpdateUserAsync(int id, UserUpdateDto dto);
+    Task<bool> DeleteUserAsync(int id);
 }

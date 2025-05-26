@@ -16,23 +16,25 @@ public class UserListService : IUserListService
         _beanRepository = beanRepository;
     }
 
-    public IEnumerable<UserListDto> GetAllLists()
+    public async Task<IEnumerable<UserListDto>> GetAllListsAsync()
     {
-        return _repository.GetAll().Select(MapToDto);
+        var lists = await _repository.GetAllAsync();
+        return lists.Select(MapToDto);
     }
 
-    public UserListDto? GetListById(int id)
+    public async Task<UserListDto?> GetListByIdAsync(int id)
     {
-        var list = _repository.GetById(id);
+        var list = await _repository.GetByIdAsync(id);
         return list != null ? MapToDto(list) : null;
     }
 
-    public IEnumerable<UserListDto> GetListsByUserId(int userId)
+    public async Task<IEnumerable<UserListDto>> GetListsByUserIdAsync(int userId)
     {
-        return _repository.GetByUserId(userId).Select(MapToDto);
+        var lists = await _repository.GetByUserIdAsync(userId);
+        return lists.Select(MapToDto);
     }
 
-    public UserListDto CreateList(CreateUserListDto dto, int userId)
+    public async Task<UserListDto> CreateListAsync(CreateUserListDto dto, int userId)
     {
         var list = new UserList
         {
@@ -41,53 +43,53 @@ public class UserListService : IUserListService
             Items = []
         };
 
-        var addedList = _repository.Add(list);
+        var addedList = await _repository.AddAsync(list);
         return MapToDto(addedList);
     }
 
-    public UserListDto? UpdateList(int id, UpdateUserListDto dto, int userId)
+    public async Task<UserListDto?> UpdateListAsync(int id, UpdateUserListDto dto, int userId)
     {
-        var list = _repository.GetById(id);
+        var list = await _repository.GetByIdAsync(id);
         if (list is null || list.UserId != userId) return null;
 
         list.Name = dto.Name;
 
-        return _repository.Update(list) ? MapToDto(list) : null;
+        return await _repository.UpdateAsync(list) ? MapToDto(list) : null;
     }
 
-    public bool DeleteList(int id, int userId)
+    public async Task<bool> DeleteListAsync(int id, int userId)
     {
-        var list = _repository.GetById(id);
+        var list = await _repository.GetByIdAsync(id);
         if (list is null || list.UserId != userId) return false;
 
-        return _repository.Delete(id);
+        return await _repository.DeleteAsync(id);
     }
 
-    public bool AddBeanToList(int listId, int beanId, int userId)
+    public async Task<bool> AddBeanToListAsync(int listId, int beanId, int userId)
     {
-        var list = _repository.GetById(listId);
+        var list = await _repository.GetByIdAsync(listId);
         if (list is null || list.UserId != userId) return false;
 
-        var bean = _beanRepository.GetById(beanId);
-        return bean is not null && _repository.AddBeanToList(listId, beanId);
+        var bean = await _beanRepository.GetByIdAsync(beanId);
+        return bean is not null && await _repository.AddBeanToListAsync(listId, beanId);
     }
 
-    public bool RemoveBeanFromList(int listId, int beanId, int userId)
+    public async Task<bool> RemoveBeanFromListAsync(int listId, int beanId, int userId)
     {
-        var list = _repository.GetById(listId);
+        var list = await _repository.GetByIdAsync(listId);
         if (list is null || list.UserId != userId) return false;
 
-        return _repository.RemoveBeanFromList(listId, beanId);
+        return await _repository.RemoveBeanFromListAsync(listId, beanId);
     }
 
-    public IEnumerable<BeanDto> GetBeansInList(int listId)
+    public async Task<IEnumerable<BeanDto>> GetBeansInListAsync(int listId)
     {
-        return _repository.GetBeansInList(listId)
-            .Select(b => new BeanDto
-            {
-                Id = b.Id,
-                Name = b.Name ?? string.Empty
-            });
+        var beans = await _repository.GetBeansInListAsync(listId);
+        return beans.Select(b => new BeanDto
+        {
+            Id = b.Id,
+            Name = b.Name ?? string.Empty
+        });
     }
 
     private static UserListDto MapToDto(UserList list)

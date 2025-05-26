@@ -20,9 +20,9 @@ public class OriginsController : ControllerBase
     /// </summary>
     /// <returns>List of all origins</returns>
     [HttpGet]
-    public ActionResult<IEnumerable<OriginDto>> GetAll()
+    public async Task<ActionResult<IEnumerable<OriginDto>>> GetAll()
     {
-        var origins = _originService.GetAllOrigins();
+        var origins = await _originService.GetAllOriginsAsync();
         return Ok(origins);
     }
 
@@ -32,9 +32,9 @@ public class OriginsController : ControllerBase
     /// <param name="id">The ID of the origin to retrieve</param>
     /// <returns>The requested origin or NotFound</returns>
     [HttpGet("{id:int}")]
-    public ActionResult<OriginDto> GetById(int id)
+    public async Task<ActionResult<OriginDto>> GetById(int id)
     {
-        var origin = _originService.GetOriginById(id);
+        var origin = await _originService.GetOriginByIdAsync(id);
         if (origin is null) return NotFound();
         return Ok(origin);
     }
@@ -45,9 +45,9 @@ public class OriginsController : ControllerBase
     /// <param name="createDto">The origin data to create</param>
     /// <returns>The created origin with its new ID</returns>
     [HttpPost]
-    public ActionResult<OriginDto> Create(CreateOriginDto createDto)
+    public async Task<ActionResult<OriginDto>> Create(CreateOriginDto createDto)
     {
-        var origin = _originService.CreateOrigin(createDto);
+        var origin = await _originService.CreateOriginAsync(createDto);
         return CreatedAtAction(nameof(GetById), new { id = origin.Id }, origin);
     }
 
@@ -58,9 +58,9 @@ public class OriginsController : ControllerBase
     /// <param name="updateDto">New origin data</param>
     /// <returns>No content on success</returns>
     [HttpPut("{id:int}")]
-    public IActionResult Update(int id, UpdateOriginDto updateDto)
+    public async Task<IActionResult> Update(int id, UpdateOriginDto updateDto)
     {
-        var success = _originService.UpdateOrigin(id, updateDto);
+        var success = await _originService.UpdateOriginAsync(id, updateDto);
         if (!success) return NotFound();
         return NoContent();
     }
@@ -71,9 +71,9 @@ public class OriginsController : ControllerBase
     /// <param name="id">ID of the origin to delete</param>
     /// <returns>No content on success</returns>
     [HttpDelete("{id:int}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        var success = _originService.DeleteOrigin(id);
+        var success = await _originService.DeleteOriginAsync(id);
         if (!success) return NotFound();
         return NoContent();
     }

@@ -3,6 +3,7 @@ using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
+
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
 public class BeanService : IBeanService
@@ -14,18 +15,19 @@ public class BeanService : IBeanService
         _repository = repository;
     }
 
-    public IEnumerable<BeanDto> GetAllBeans()
+    public async Task<IEnumerable<BeanDto>> GetAllBeansAsync()
     {
-        return _repository.GetAll().Select(MapToDto);
+        var beans = await _repository.GetAllAsync();
+        return beans.Select(MapToDto);
     }
 
-    public BeanDto? GetBeanById(int id)
+    public async Task<BeanDto?> GetBeanByIdAsync(int id)
     {
-        var bean = _repository.GetById(id);
+        var bean = await _repository.GetByIdAsync(id);
         return bean != null ? MapToDto(bean) : null;
     }
 
-    public BeanDto CreateBean(CreateBeanDto dto)
+    public async Task<BeanDto> CreateBeanAsync(CreateBeanDto dto)
     {
         var bean = new Bean
         {
@@ -37,13 +39,13 @@ public class BeanService : IBeanService
             Origin = new Origin()
         };
 
-        var addedBean = _repository.Add(bean);
+        var addedBean = await _repository.AddAsync(bean);
         return MapToDto(addedBean);
     }
 
-    public bool UpdateBean(int id, UpdateBeanDto dto)
+    public async Task<bool> UpdateBeanAsync(int id, UpdateBeanDto dto)
     {
-        var bean = _repository.GetById(id);
+        var bean = await _repository.GetByIdAsync(id);
         if (bean is null) return false;
 
         bean.Name = dto.Name;
@@ -52,12 +54,12 @@ public class BeanService : IBeanService
         bean.Description = dto.Description;
         bean.Price = dto.Price;
 
-        return _repository.Update(bean);
+        return await _repository.UpdateAsync(bean);
     }
 
-    public bool DeleteBean(int id)
+    public async Task<bool> DeleteBeanAsync(int id)
     {
-        return _repository.Delete(id);
+        return await _repository.DeleteAsync(id);
     }
 
     private static BeanDto MapToDto(Bean bean) => new BeanDto

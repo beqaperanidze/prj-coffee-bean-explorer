@@ -4,9 +4,9 @@ namespace CoffeeBeanExplorer.Application.Services.Interfaces;
 
 public interface IOriginService
 {
-    IEnumerable<OriginDto> GetAllOrigins();
-    OriginDto? GetOriginById(int id);
-    OriginDto CreateOrigin(CreateOriginDto dto);
-    bool UpdateOrigin(int id, UpdateOriginDto dto);
-    bool DeleteOrigin(int id);
+    Task<IEnumerable<OriginDto>> GetAllOriginsAsync();
+    Task<OriginDto?> GetOriginByIdAsync(int id);
+    Task<OriginDto> CreateOriginAsync(CreateOriginDto dto);
+    Task<bool> UpdateOriginAsync(int id, UpdateOriginDto dto);
+    Task<bool> DeleteOriginAsync(int id);
 }

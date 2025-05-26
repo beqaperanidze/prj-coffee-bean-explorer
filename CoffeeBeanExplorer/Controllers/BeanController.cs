@@ -19,9 +19,9 @@ public class BeanController : ControllerBase
     /// Get all coffee beans.
     /// </summary>
     [HttpGet]
-    public ActionResult<IEnumerable<BeanDto>> GetAll()
+    public async Task<ActionResult<IEnumerable<BeanDto>>> GetAll()
     {
-        var beans = _beanService.GetAllBeans();
+        var beans = await _beanService.GetAllBeansAsync();
         return Ok(beans);
     }
 
@@ -29,9 +29,9 @@ public class BeanController : ControllerBase
     /// Get a bean by its ID.
     /// </summary>
     [HttpGet("{id:int}")]
-    public ActionResult<BeanDto> GetById(int id)
+    public async Task<ActionResult<BeanDto>> GetById(int id)
     {
-        var bean = _beanService.GetBeanById(id);
+        var bean = await _beanService.GetBeanByIdAsync(id);
         if (bean is null) return NotFound();
         return Ok(bean);
     }
@@ -40,9 +40,9 @@ public class BeanController : ControllerBase
     /// Create a new coffee bean.
     /// </summary>
     [HttpPost]
-    public ActionResult<BeanDto> Create(CreateBeanDto dto)
+    public async Task<ActionResult<BeanDto>> Create(CreateBeanDto dto)
     {
-        var bean = _beanService.CreateBean(dto);
+        var bean = await _beanService.CreateBeanAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = bean.Id }, bean);
     }
 
@@ -50,9 +50,9 @@ public class BeanController : ControllerBase
     /// Update an existing bean.
     /// </summary>
     [HttpPut("{id:int}")]
-    public IActionResult Update(int id, UpdateBeanDto dto)
+    public async Task<IActionResult> Update(int id, UpdateBeanDto dto)
     {
-        var success = _beanService.UpdateBean(id, dto);
+        var success = await _beanService.UpdateBeanAsync(id, dto);
         if (!success) return NotFound();
         return NoContent();
     }
@@ -61,9 +61,9 @@ public class BeanController : ControllerBase
     /// Delete a bean by its ID.
     /// </summary>
     [HttpDelete("{id:int}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        var success = _beanService.DeleteBean(id);
+        var success = await _beanService.DeleteBeanAsync(id);
         if (!success) return NotFound();
         return NoContent();
     }

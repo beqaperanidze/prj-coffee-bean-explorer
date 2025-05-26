@@ -1,6 +1,7 @@
 ﻿using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
+
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
 public class OriginRepository : IOriginRepository
@@ -8,37 +9,37 @@ public class OriginRepository : IOriginRepository
     private static readonly List<Origin> _origins = [];
     private static int _nextId = 1;
 
-    public IEnumerable<Origin> GetAll() => _origins;
+    public Task<IEnumerable<Origin>> GetAllAsync() => Task.FromResult<IEnumerable<Origin>>(_origins);
 
-    public Origin? GetById(int id)
+    public Task<Origin?> GetByIdAsync(int id)
     {
-        return _origins.FirstOrDefault(o => o.Id == id);
+        return Task.FromResult(_origins.FirstOrDefault(o => o.Id == id));
     }
 
-    public Origin Add(Origin origin)
+    public Task<Origin> AddAsync(Origin origin)
     {
         origin.Id = _nextId++;
         origin.CreatedAt = DateTime.UtcNow;
         origin.UpdatedAt = DateTime.UtcNow;
         _origins.Add(origin);
-        return origin;
+        return Task.FromResult(origin);
     }
 
-    public bool Update(Origin origin)
+    public Task<bool> UpdateAsync(Origin origin)
     {
         var existingOrigin = _origins.FirstOrDefault(o => o.Id == origin.Id);
-        if (existingOrigin is null) return false;
+        if (existingOrigin is null) return Task.FromResult(false);
 
         existingOrigin.Country = origin.Country;
         existingOrigin.Region = origin.Region;
         existingOrigin.UpdatedAt = DateTime.UtcNow;
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public bool Delete(int id)
+    public Task<bool> DeleteAsync(int id)
     {
         var origin = _origins.FirstOrDefault(o => o.Id == id);
-        return origin is not null && _origins.Remove(origin);
+        return Task.FromResult(origin is not null && _origins.Remove(origin));
     }
 }

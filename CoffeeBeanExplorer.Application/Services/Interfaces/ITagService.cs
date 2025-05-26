@@ -4,12 +4,12 @@ namespace CoffeeBeanExplorer.Application.Services.Interfaces;
 
 public interface ITagService
 {
-    IEnumerable<TagDto> GetAllTags();
-    TagDto? GetTagById(int id);
-    IEnumerable<TagDto> GetTagsByBeanId(int beanId);
-    TagDto CreateTag(CreateTagDto dto);
-    bool UpdateTag(int id, UpdateTagDto dto);
-    bool DeleteTag(int id);
-    bool AddTagToBean(int tagId, int beanId);
-    bool RemoveTagFromBean(int tagId, int beanId);
+    Task<IEnumerable<TagDto>> GetAllTagsAsync();
+    Task<TagDto?> GetTagByIdAsync(int id);
+    Task<IEnumerable<TagDto>> GetTagsByBeanIdAsync(int beanId);
+    Task<TagDto> CreateTagAsync(CreateTagDto dto);
+    Task<bool> UpdateTagAsync(int id, UpdateTagDto dto);
+    Task<bool> DeleteTagAsync(int id);
+    Task<bool> AddTagToBeanAsync(int tagId, int beanId);
+    Task<bool> RemoveTagFromBeanAsync(int tagId, int beanId);
 }

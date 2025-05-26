@@ -1,6 +1,7 @@
 ﻿using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
+
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
 public class UserRepository : IUserRepository
@@ -8,36 +9,37 @@ public class UserRepository : IUserRepository
     private static readonly List<User> _users = [];
     private static int _nextId = 1;
 
-    public IEnumerable<User> GetAll() => _users;
+    public Task<IEnumerable<User>> GetAllAsync() => Task.FromResult<IEnumerable<User>>(_users);
 
-    public User? GetById(int id)
+    public Task<User?> GetByIdAsync(int id)
     {
-        return _users.FirstOrDefault(u => u.Id == id);
+        return Task.FromResult(_users.FirstOrDefault(u => u.Id == id));
     }
 
-    public User? GetByUsername(string username)
+    public Task<User?> GetByUsernameAsync(string username)
     {
-        return _users.FirstOrDefault(u => u.Username == username);
+        return Task.FromResult(_users.FirstOrDefault(u => u.Username == username));
     }
 
-    public User? GetByEmail(string email)
+    public Task<User?> GetByEmailAsync(string email)
     {
-        return _users.FirstOrDefault(u => u.Email == email);
+        return Task.FromResult(_users.FirstOrDefault(u =>
+            string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase)));
     }
 
-    public User Add(User user)
+    public Task<User> AddAsync(User user)
     {
         user.Id = _nextId++;
         user.CreatedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
         _users.Add(user);
-        return user;
+        return Task.FromResult(user);
     }
 
-    public bool Update(User user)
+    public Task<bool> UpdateAsync(User user)
     {
         var existingUser = _users.FirstOrDefault(u => u.Id == user.Id);
-        if (existingUser is null) return false;
+        if (existingUser is null) return Task.FromResult(false);
 
         existingUser.Username = user.Username;
         existingUser.Email = user.Email;
@@ -45,12 +47,12 @@ public class UserRepository : IUserRepository
         existingUser.LastName = user.LastName;
         existingUser.UpdatedAt = DateTime.UtcNow;
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public bool Delete(int id)
+    public Task<bool> DeleteAsync(int id)
     {
         var user = _users.FirstOrDefault(u => u.Id == id);
-        return user is not null && _users.Remove(user);
+        return Task.FromResult(user is not null && _users.Remove(user));
     }
 }
