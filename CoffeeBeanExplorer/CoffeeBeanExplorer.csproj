@@ -39,7 +39,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Data\" />
+      <ProjectReference Include="..\CoffeeBeanExplorer.Application\CoffeeBeanExplorer.Application.csproj" />
+      <ProjectReference Include="..\CoffeeBeanExplorer.Domain\CoffeeBeanExplorer.Domain.csproj" />
     </ItemGroup>
 
 </Project>

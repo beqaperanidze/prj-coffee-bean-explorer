@@ -1,4 +1,4 @@
-﻿namespace CoffeeBeanExplorer.Enums;
+﻿namespace CoffeeBeanExplorer.Domain.Enums;
 
 public enum RoastLevel
 {
