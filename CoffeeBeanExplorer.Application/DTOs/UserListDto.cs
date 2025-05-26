@@ -1,4 +1,4 @@
-﻿namespace CoffeeBeanExplorer.Application.DTOs;
+namespace CoffeeBeanExplorer.Application.DTOs;
 
 public class UserListDto
 {
@@ -7,7 +7,6 @@ public class UserListDto
     public int UserId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public int BeansCount { get; set; }
 }
 
 public class CreateUserListDto
