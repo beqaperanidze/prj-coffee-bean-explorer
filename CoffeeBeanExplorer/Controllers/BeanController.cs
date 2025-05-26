@@ -1,4 +1,5 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using System.Collections.Generic;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,14 +7,9 @@ namespace CoffeeBeanExplorer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BeanController : ControllerBase
+public class BeanController(IBeanService beanService) : ControllerBase
 {
-    private readonly IBeanService _beanService;
-
-    public BeanController(IBeanService beanService)
-    {
-        _beanService = beanService;
-    }
+    private readonly IBeanService _beanService = beanService;
 
     /// <summary>
     /// Get all coffee beans.

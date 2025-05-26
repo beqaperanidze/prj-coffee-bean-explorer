@@ -1,4 +1,6 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using System;
+using System.Collections.Generic;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
