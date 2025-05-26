@@ -1,4 +1,6 @@
-﻿namespace CoffeeBeanExplorer.Domain.Models;
+﻿using System;
+
+namespace CoffeeBeanExplorer.Domain.Models;
 
 public class ListItem
 {

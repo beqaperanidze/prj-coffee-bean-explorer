@@ -1,103 +1,66 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
-    using CoffeeBeanExplorer.Domain.Models;
-    using Microsoft.AspNetCore.Mvc;
-    
-    namespace CoffeeBeanExplorer.Controllers;
-    
-    [ApiController]
-    [Route("api/[controller]")]
-    public class BeanController : ControllerBase
+﻿using System.Collections.Generic;
+using CoffeeBeanExplorer.Application.DTOs;
+using CoffeeBeanExplorer.Application.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+
+namespace CoffeeBeanExplorer.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class BeanController(IBeanService beanService) : ControllerBase
+{
+    private readonly IBeanService _beanService = beanService;
+
+    /// <summary>
+    /// Get all coffee beans.
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<BeanDto>>> GetAll()
     {
-        private static readonly List<Bean> _beans = [];
-        private static int _nextId = 1;
-    
-        /// <summary>
-        /// Get all coffee beans.
-        /// </summary>
-        [HttpGet]
-        public ActionResult<IEnumerable<BeanDto>> GetAll()
-        {
-            var dtos = _beans.Select(MapToDto).ToList();
-            return Ok(dtos);
-        }
-    
-        /// <summary>
-        /// Get a bean by its ID.
-        /// </summary>
-        [HttpGet("{id:int}")]
-        public ActionResult<BeanDto> GetById(int id)
-        {
-            var bean = _beans.FirstOrDefault(b => b.Id == id);
-            if (bean is null) return NotFound();
-            return Ok(MapToDto(bean));
-        }
-    
-        /// <summary>
-        /// Create a new coffee bean.
-        /// </summary>
-        [HttpPost]
-        public ActionResult<BeanDto> Create(CreateBeanDto dto)
-        {
-            var bean = new Bean
-            {
-                Id = _nextId++,
-                Name = dto.Name,
-                OriginId = dto.OriginId,
-                RoastLevel = dto.RoastLevel,
-                Description = dto.Description,
-                Price = dto.Price,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Origin = new Origin() 
-            };
-    
-            _beans.Add(bean);
-            return CreatedAtAction(nameof(GetById), new { id = bean.Id }, MapToDto(bean));
-        }
-    
-        /// <summary>
-        /// Update an existing bean.
-        /// </summary>
-        [HttpPut("{id:int}")]
-        public IActionResult Update(int id, UpdateBeanDto dto)
-        {
-            var bean = _beans.FirstOrDefault(b => b.Id == id);
-            if (bean is null) return NotFound();
-    
-            bean.Name = dto.Name;
-            bean.OriginId = dto.OriginId;
-            bean.RoastLevel = dto.RoastLevel;
-            bean.Description = dto.Description;
-            bean.Price = dto.Price;
-            bean.UpdatedAt = DateTime.UtcNow;
-    
-            return NoContent();
-        }
-    
-        /// <summary>
-        /// Delete a bean by its ID.
-        /// </summary>
-        [HttpDelete("{id:int}")]
-        public IActionResult Delete(int id)
-        {
-            var bean = _beans.FirstOrDefault(b => b.Id == id);
-            if (bean is null) return NotFound();
-    
-            _beans.Remove(bean);
-            return NoContent();
-        }
-    
-        private static BeanDto MapToDto(Bean bean) => new BeanDto
-        {
-            Id = bean.Id,
-            Name = bean.Name,
-            OriginId = bean.OriginId,
-            OriginCountry = bean.Origin?.Country ?? string.Empty,
-            OriginRegion = bean.Origin?.Region,
-            RoastLevel = bean.RoastLevel,
-            Description = bean.Description,
-            Price = bean.Price,
-            CreatedAt = bean.CreatedAt,
-            UpdatedAt = bean.UpdatedAt
-        };
+        var beans = await _beanService.GetAllBeansAsync();
+        return Ok(beans);
     }
+
+    /// <summary>
+    /// Get a bean by its ID.
+    /// </summary>
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<BeanDto>> GetById(int id)
+    {
+        var bean = await _beanService.GetBeanByIdAsync(id);
+        if (bean is null) return NotFound();
+        return Ok(bean);
+    }
+
+    /// <summary>
+    /// Create a new coffee bean.
+    /// </summary>
+    [HttpPost]
+    public async Task<ActionResult<BeanDto>> Create(CreateBeanDto dto)
+    {
+        var bean = await _beanService.CreateBeanAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = bean.Id }, bean);
+    }
+
+    /// <summary>
+    /// Update an existing bean.
+    /// </summary>
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, UpdateBeanDto dto)
+    {
+        var success = await _beanService.UpdateBeanAsync(id, dto);
+        if (!success) return NotFound();
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Delete a bean by its ID.
+    /// </summary>
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var success = await _beanService.DeleteBeanAsync(id);
+        if (!success) return NotFound();
+        return NoContent();
+    }
+}

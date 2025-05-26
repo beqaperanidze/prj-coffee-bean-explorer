@@ -1,4 +1,7 @@
-﻿namespace CoffeeBeanExplorer.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace CoffeeBeanExplorer.Domain.Models;
 
 public class Tag
 {

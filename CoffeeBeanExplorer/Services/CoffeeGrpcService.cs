@@ -1,4 +1,6 @@
-﻿using Grpc.Core;
+﻿using System.Threading.Tasks;
+using Grpc.Core;
+using Microsoft.Extensions.Logging;
 
 namespace CoffeeBeanExplorer.Services;
 

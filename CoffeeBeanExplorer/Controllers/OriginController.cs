@@ -1,5 +1,6 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
-using CoffeeBeanExplorer.Domain.Models;
+﻿using System.Collections.Generic;
+using CoffeeBeanExplorer.Application.DTOs;
+using CoffeeBeanExplorer.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeBeanExplorer.Controllers;
@@ -8,18 +9,22 @@ namespace CoffeeBeanExplorer.Controllers;
 [Route("api/[controller]")]
 public class OriginsController : ControllerBase
 {
-    private static readonly List<Origin> Origins = [];
-    private static int _nextId = 1;
+    private readonly IOriginService _originService;
+
+    public OriginsController(IOriginService originService)
+    {
+        _originService = originService;
+    }
 
     /// <summary>
     /// Retrieves all coffee origins
     /// </summary>
     /// <returns>List of all origins</returns>
     [HttpGet]
-    public ActionResult<IEnumerable<OriginDto>> GetAll()
+    public async Task<ActionResult<IEnumerable<OriginDto>>> GetAll()
     {
-        var originDtos = Origins.Select(MapToDto).ToList();
-        return Ok(originDtos);
+        var origins = await _originService.GetAllOriginsAsync();
+        return Ok(origins);
     }
 
     /// <summary>
@@ -28,11 +33,11 @@ public class OriginsController : ControllerBase
     /// <param name="id">The ID of the origin to retrieve</param>
     /// <returns>The requested origin or NotFound</returns>
     [HttpGet("{id:int}")]
-    public ActionResult<OriginDto> GetById(int id)
+    public async Task<ActionResult<OriginDto>> GetById(int id)
     {
-        var origin = Origins.FirstOrDefault(o => o.Id == id);
-        if (origin == null) return NotFound();
-        return Ok(MapToDto(origin));
+        var origin = await _originService.GetOriginByIdAsync(id);
+        if (origin is null) return NotFound();
+        return Ok(origin);
     }
 
     /// <summary>
@@ -41,19 +46,10 @@ public class OriginsController : ControllerBase
     /// <param name="createDto">The origin data to create</param>
     /// <returns>The created origin with its new ID</returns>
     [HttpPost]
-    public ActionResult<OriginDto> Create(CreateOriginDto createDto)
+    public async Task<ActionResult<OriginDto>> Create(CreateOriginDto createDto)
     {
-        var origin = new Origin
-        {
-            Id = _nextId++,
-            Country = createDto.Country,
-            Region = createDto.Region,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        Origins.Add(origin);
-        return CreatedAtAction(nameof(GetById), new { id = origin.Id }, MapToDto(origin));
+        var origin = await _originService.CreateOriginAsync(createDto);
+        return CreatedAtAction(nameof(GetById), new { id = origin.Id }, origin);
     }
 
     /// <summary>
@@ -63,15 +59,10 @@ public class OriginsController : ControllerBase
     /// <param name="updateDto">New origin data</param>
     /// <returns>No content on success</returns>
     [HttpPut("{id:int}")]
-    public IActionResult Update(int id, UpdateOriginDto updateDto)
+    public async Task<IActionResult> Update(int id, UpdateOriginDto updateDto)
     {
-        var origin = Origins.FirstOrDefault(o => o.Id == id);
-        if (origin == null) return NotFound();
-
-        origin.Country = updateDto.Country;
-        origin.Region = updateDto.Region;
-        origin.UpdatedAt = DateTime.UtcNow;
-
+        var success = await _originService.UpdateOriginAsync(id, updateDto);
+        if (!success) return NotFound();
         return NoContent();
     }
 
@@ -81,24 +72,10 @@ public class OriginsController : ControllerBase
     /// <param name="id">ID of the origin to delete</param>
     /// <returns>No content on success</returns>
     [HttpDelete("{id:int}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        var origin = Origins.FirstOrDefault(o => o.Id == id);
-        if (origin == null) return NotFound();
-
-        Origins.Remove(origin);
+        var success = await _originService.DeleteOriginAsync(id);
+        if (!success) return NotFound();
         return NoContent();
-    }
-
-    private static OriginDto MapToDto(Origin origin)
-    {
-        return new OriginDto
-        {
-            Id = origin.Id,
-            Country = origin.Country,
-            Region = origin.Region,
-            CreatedAt = origin.CreatedAt,
-            UpdatedAt = origin.UpdatedAt
-        };
     }
 }
