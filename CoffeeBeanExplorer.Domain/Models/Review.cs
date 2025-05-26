@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CoffeeBeanExplorer.Domain.Models;
+﻿namespace CoffeeBeanExplorer.Domain.Models;
 
 public class Review
 {

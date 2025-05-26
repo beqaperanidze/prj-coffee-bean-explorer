@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using CoffeeBeanExplorer.Domain.Enums;
+﻿using CoffeeBeanExplorer.Domain.Enums;
 
 namespace CoffeeBeanExplorer.Domain.Models;
 
@@ -20,4 +18,3 @@ public class Bean
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
     public ICollection<ListItem> ListItems { get; set; } = new List<ListItem>();
 }
-
