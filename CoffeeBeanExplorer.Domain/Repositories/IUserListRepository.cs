@@ -12,5 +12,4 @@ public interface IUserListRepository
     Task<bool> DeleteAsync(int id);
     Task<bool> AddBeanToListAsync(int listId, int beanId);
     Task<bool> RemoveBeanFromListAsync(int listId, int beanId);
-    Task<IEnumerable<Bean>> GetBeansInListAsync(int listId);
 }

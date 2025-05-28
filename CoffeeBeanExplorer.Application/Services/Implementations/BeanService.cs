@@ -73,6 +73,11 @@ public class BeanService : IBeanService
         Description = bean.Description,
         Price = bean.Price,
         CreatedAt = bean.CreatedAt,
-        UpdatedAt = bean.UpdatedAt
+        UpdatedAt = bean.UpdatedAt,
+        Tags = bean.BeanTags?.Select(bt => new TagDto
+        {
+            Id = bt.Tag!.Id,
+            Name = bt.Tag.Name
+        }).ToList() ?? []
     };
 }

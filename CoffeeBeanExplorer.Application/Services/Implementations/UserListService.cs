@@ -82,16 +82,6 @@ public class UserListService : IUserListService
         return await _repository.RemoveBeanFromListAsync(listId, beanId);
     }
 
-    public async Task<IEnumerable<BeanDto>> GetBeansInListAsync(int listId)
-    {
-        var beans = await _repository.GetBeansInListAsync(listId);
-        return beans.Select(b => new BeanDto
-        {
-            Id = b.Id,
-            Name = b.Name ?? string.Empty
-        });
-    }
-
     private static UserListDto MapToDto(UserList list)
     {
         return new UserListDto
@@ -100,7 +90,17 @@ public class UserListService : IUserListService
             Name = list.Name,
             UserId = list.UserId,
             CreatedAt = list.CreatedAt,
-            UpdatedAt = list.UpdatedAt
+            UpdatedAt = list.UpdatedAt,
+            Items = list.Items?.Select(item => new ListItemDto
+            {
+                ListId = item.ListId,
+                BeanId = item.BeanId,
+                BeanName = item.Bean?.Name ?? string.Empty,
+                OriginCountry = item.Bean?.Origin?.Country ?? string.Empty,
+                OriginRegion = item.Bean?.Origin?.Region,
+                Price = item.Bean?.Price ?? 0,
+                CreatedAt = item.CreatedAt
+            }).ToList() ?? []
         };
     }
 }

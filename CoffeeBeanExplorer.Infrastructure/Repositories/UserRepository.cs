@@ -1,61 +1,110 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CoffeeBeanExplorer.Domain.Models;
+﻿using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
-
+using CoffeeBeanExplorer.Infrastructure.Data;
+using Dapper;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private static readonly List<User> _users = [];
-    private static int _nextId = 1;
+    private readonly DatabaseContext _dbContext;
 
-    public Task<IEnumerable<User>> GetAllAsync() => Task.FromResult<IEnumerable<User>>(_users);
-
-    public Task<User?> GetByIdAsync(int id)
+    public UserRepository(DatabaseContext dbContext)
     {
-        return Task.FromResult(_users.FirstOrDefault(u => u.Id == id));
+        _dbContext = dbContext;
     }
 
-    public Task<User?> GetByUsernameAsync(string username)
+    public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return Task.FromResult(_users.FirstOrDefault(u => u.Username == username));
+        using var connection = _dbContext.GetConnection();
+        return await connection.QueryAsync<User>(
+            """
+            SELECT * FROM "Auth"."Users"
+            """);
     }
 
-    public Task<User?> GetByEmailAsync(string email)
+    public async Task<User?> GetByIdAsync(int id)
     {
-        return Task.FromResult(_users.FirstOrDefault(u =>
-            string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase)));
+        using var connection = _dbContext.GetConnection();
+        return await connection.QueryFirstOrDefaultAsync<User>(
+            """
+            SELECT * FROM "Auth"."Users" 
+            WHERE "Id" = @Id
+            """,
+            new { Id = id });
     }
 
-    public Task<User> AddAsync(User user)
+    public async Task<User?> GetByUsernameAsync(string username)
     {
-        user.Id = _nextId++;
-        user.CreatedAt = DateTime.UtcNow;
-        user.UpdatedAt = DateTime.UtcNow;
-        _users.Add(user);
-        return Task.FromResult(user);
+        using var connection = _dbContext.GetConnection();
+        return await connection.QueryFirstOrDefaultAsync<User>(
+            """
+            SELECT * FROM "Auth"."Users" 
+            WHERE "Username" = @Username
+            """,
+            new { Username = username });
     }
 
-    public Task<bool> UpdateAsync(User user)
+    public async Task<User?> GetByEmailAsync(string email)
     {
-        var existingUser = _users.FirstOrDefault(u => u.Id == user.Id);
-        if (existingUser is null) return Task.FromResult(false);
-
-        existingUser.Username = user.Username;
-        existingUser.Email = user.Email;
-        existingUser.FirstName = user.FirstName;
-        existingUser.LastName = user.LastName;
-        existingUser.UpdatedAt = DateTime.UtcNow;
-
-        return Task.FromResult(true);
+        using var connection = _dbContext.GetConnection();
+        return await connection.QueryFirstOrDefaultAsync<User>(
+            """
+            SELECT * FROM "Auth"."Users" 
+            WHERE LOWER("Email") = LOWER(@Email)
+            """,
+            new { Email = email });
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public async Task<User> AddAsync(User user)
     {
-        var user = _users.FirstOrDefault(u => u.Id == id);
-        return Task.FromResult(user is not null && _users.Remove(user));
+        using var connection = _dbContext.GetConnection();
+        var id = await connection.ExecuteScalarAsync<int>(
+            """
+            INSERT INTO "Auth"."Users" ("Username", "Email", "FirstName", "LastName", "PasswordHash")
+            VALUES (@Username, @Email, @FirstName, @LastName, @PasswordHash)
+            RETURNING "Id"
+            """,
+            user);
+
+        user.Id = id;
+        return (await GetByIdAsync(id))!;
+    }
+
+    public async Task<bool> UpdateAsync(User user)
+    {
+        using var connection = _dbContext.GetConnection();
+        var rowsAffected = await connection.ExecuteAsync(
+            """
+            UPDATE "Auth"."Users"
+            SET "Username" = @Username,
+                "Email" = @Email,
+                "FirstName" = @FirstName,
+                "LastName" = @LastName,
+                "UpdatedAt" = now()
+            WHERE "Id" = @Id
+            """,
+            user);
+
+        return rowsAffected > 0;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        using var connection = _dbContext.GetConnection();
+
+        await connection.ExecuteAsync(
+            """DELETE FROM "Social"."UserLists" WHERE "UserId" = @Id""",
+            new { Id = id });
+
+        await connection.ExecuteAsync(
+            """DELETE FROM "Social"."Reviews" WHERE "UserId" = @Id""",
+            new { Id = id });
+
+        var rowsAffected = await connection.ExecuteAsync(
+            """DELETE FROM "Auth"."Users" WHERE "Id" = @Id""",
+            new { Id = id });
+
+        return rowsAffected > 0;
     }
 }

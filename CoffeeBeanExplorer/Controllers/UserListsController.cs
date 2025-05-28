@@ -62,16 +62,6 @@ public class UserListController : ControllerBase
         return NoContent();
     }
 
-    [HttpGet("{id:int}/beans")]
-    public async Task<ActionResult<IEnumerable<BeanDto>>> GetBeansInList(int id)
-    {
-        var list = await _userListService.GetListByIdAsync(id);
-        if (list is null) return NotFound();
-
-        var beans = await _userListService.GetBeansInListAsync(id);
-        return Ok(beans);
-    }
-
     [HttpPost("{listId:int}/beans/{beanId:int}")]
     public async Task<ActionResult> AddBeanToList(int listId, int beanId, [FromQuery] int userId)
     {

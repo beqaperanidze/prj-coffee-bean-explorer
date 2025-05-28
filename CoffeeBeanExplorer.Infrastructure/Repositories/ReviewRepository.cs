@@ -1,60 +1,156 @@
 ﻿using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
-
+using CoffeeBeanExplorer.Infrastructure.Data;
+using Dapper;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
 public class ReviewRepository : IReviewRepository
 {
-    private static readonly List<Review> _reviews = [];
-    private static int _nextId = 1;
+    private readonly DatabaseContext _dbContext;
 
-    public Task<IEnumerable<Review>> GetAllAsync() => Task.FromResult<IEnumerable<Review>>(_reviews);
-
-    public Task<Review?> GetByIdAsync(int id)
+    public ReviewRepository(DatabaseContext dbContext)
     {
-        return Task.FromResult(_reviews.FirstOrDefault(r => r.Id == id));
+        _dbContext = dbContext;
     }
 
-    public Task<IEnumerable<Review>> GetByBeanIdAsync(int beanId)
+    public async Task<IEnumerable<Review>> GetAllAsync()
     {
-        return Task.FromResult(_reviews.Where(r => r.BeanId == beanId));
+        using var connection = _dbContext.GetConnection();
+        return await connection.QueryAsync<Review, User, Bean, Review>(
+            """
+            SELECT r.*, u.*, b.*
+            FROM "Social"."Reviews" r
+            JOIN "Auth"."Users" u ON r."UserId" = u."Id"
+            JOIN "Product"."Beans" b ON r."BeanId" = b."Id"
+            """,
+            (review, user, bean) =>
+            {
+                review.User = user;
+                review.Bean = bean;
+                return review;
+            },
+            splitOn: "Id,Id"
+        );
     }
 
-    public Task<IEnumerable<Review>> GetByUserIdAsync(int userId)
+    public async Task<Review?> GetByIdAsync(int id)
     {
-        return Task.FromResult(_reviews.Where(r => r.UserId == userId));
+        using var connection = _dbContext.GetConnection();
+        var reviews = await connection.QueryAsync<Review, User, Bean, Review>(
+            """
+            SELECT r.*, u.*, b.*
+            FROM "Social"."Reviews" r
+            JOIN "Auth"."Users" u ON r."UserId" = u."Id"
+            JOIN "Product"."Beans" b ON r."BeanId" = b."Id"
+            WHERE r."Id" = @Id
+            """,
+            (review, user, bean) =>
+            {
+                review.User = user;
+                review.Bean = bean;
+                return review;
+            },
+            new { Id = id },
+            splitOn: "Id,Id"
+        );
+
+        return reviews.FirstOrDefault();
     }
 
-    public Task<bool> HasUserReviewedBeanAsync(int userId, int beanId)
+    public async Task<IEnumerable<Review>> GetByBeanIdAsync(int beanId)
     {
-        return Task.FromResult(_reviews.Any(r => r.UserId == userId && r.BeanId == beanId));
+        using var connection = _dbContext.GetConnection();
+        return await connection.QueryAsync<Review, User, Review>(
+            """
+            SELECT r.*, u.*
+            FROM "Social"."Reviews" r
+            JOIN "Auth"."Users" u ON r."UserId" = u."Id"
+            WHERE r."BeanId" = @BeanId
+            """,
+            (review, user) =>
+            {
+                review.User = user;
+                return review;
+            },
+            new { BeanId = beanId },
+            splitOn: "Id"
+        );
     }
 
-    public Task<Review> AddAsync(Review review)
+    public async Task<IEnumerable<Review>> GetByUserIdAsync(int userId)
     {
-        review.Id = _nextId++;
-        review.CreatedAt = DateTime.UtcNow;
-        review.UpdatedAt = DateTime.UtcNow;
-        _reviews.Add(review);
-        return Task.FromResult(review);
+        using var connection = _dbContext.GetConnection();
+        return await connection.QueryAsync<Review, Bean, Review>(
+            """
+            SELECT r.*, b.*
+            FROM "Social"."Reviews" r
+            JOIN "Product"."Beans" b ON r."BeanId" = b."Id"
+            WHERE r."UserId" = @UserId
+            """,
+            (review, bean) =>
+            {
+                review.Bean = bean;
+                return review;
+            },
+            new { UserId = userId },
+            splitOn: "Id"
+        );
     }
 
-    public Task<bool> UpdateAsync(Review review)
+    public async Task<bool> HasUserReviewedBeanAsync(int userId, int beanId)
     {
-        var existingReview = _reviews.FirstOrDefault(r => r.Id == review.Id);
-        if (existingReview is null) return Task.FromResult(false);
-
-        existingReview.Rating = review.Rating;
-        existingReview.Comment = review.Comment;
-        existingReview.UpdatedAt = DateTime.UtcNow;
-
-        return Task.FromResult(true);
+        using var connection = _dbContext.GetConnection();
+        return await connection.ExecuteScalarAsync<bool>(
+            """
+            SELECT COUNT(1) > 0
+            FROM "Social"."Reviews"
+            WHERE "UserId" = @UserId AND "BeanId" = @BeanId
+            """,
+            new { UserId = userId, BeanId = beanId });
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public async Task<Review> AddAsync(Review review)
     {
-        var review = _reviews.FirstOrDefault(r => r.Id == id);
-        return Task.FromResult(review is not null && _reviews.Remove(review));
+        using var connection = _dbContext.GetConnection();
+        var id = await connection.ExecuteScalarAsync<int>(
+            """
+            INSERT INTO "Social"."Reviews" ("UserId", "BeanId", "Rating", "Comment")
+            VALUES (@UserId, @BeanId, @Rating, @Comment)
+            RETURNING "Id"
+            """,
+            review);
+
+        review.Id = id;
+        return (await GetByIdAsync(id))!;
+    }
+
+    public async Task<bool> UpdateAsync(Review review)
+    {
+        using var connection = _dbContext.GetConnection();
+        var rowsAffected = await connection.ExecuteAsync(
+            """
+            UPDATE "Social"."Reviews"
+            SET "Rating" = @Rating,
+                "Comment" = @Comment,
+                "UpdatedAt" = now()
+            WHERE "Id" = @Id
+            """,
+            review);
+
+        return rowsAffected > 0;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        using var connection = _dbContext.GetConnection();
+        var rowsAffected = await connection.ExecuteAsync(
+            """
+            DELETE FROM "Social"."Reviews" 
+            WHERE "Id" = @Id
+            """,
+            new { Id = id });
+
+        return rowsAffected > 0;
     }
 }
