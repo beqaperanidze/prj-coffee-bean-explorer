@@ -5,50 +5,47 @@ using Dapper;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
-public class OriginRepository : IOriginRepository
+public class OriginRepository(DbConnectionFactory dbContext) : IOriginRepository
 {
-    private readonly DatabaseContext _dbContext;
-
-    public OriginRepository(DatabaseContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async Task<IEnumerable<Origin>> GetAllAsync()
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         return await connection.QueryAsync<Origin>(
             """
-            SELECT * FROM "Product"."Origins"
+            SELECT "Id", "Country", "Region", "CreatedAt", "UpdatedAt"
+            FROM "Product"."Origins"
             """);
     }
 
     public async Task<Origin?> GetByIdAsync(int id)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         return await connection.QuerySingleOrDefaultAsync<Origin>(
-            """SELECT * FROM "Product"."Origins" WHERE "Id" = @Id""",
+            """
+            SELECT "Id", "Country", "Region", "CreatedAt", "UpdatedAt" 
+            FROM "Product"."Origins" 
+            WHERE "Id" = @Id
+            """,
             new { Id = id });
     }
 
     public async Task<Origin> AddAsync(Origin origin)
     {
-        using var connection = _dbContext.GetConnection();
-        var id = await connection.ExecuteScalarAsync<int>(
+        using var connection = dbContext.GetConnection();
+        var insertedOrigin = await connection.QuerySingleAsync<Origin>(
             """
             INSERT INTO "Product"."Origins" ("Country", "Region")
-                                VALUES (@Country, @Region)
-                                RETURNING "Id"
+            VALUES (@Country, @Region)
+            RETURNING "Id", "Country", "Region", "CreatedAt", "UpdatedAt"
             """,
             origin);
 
-        origin.Id = id;
-        return (await GetByIdAsync(id))!;
+        return insertedOrigin;
     }
 
     public async Task<bool> UpdateAsync(Origin origin)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var rowsAffected = await connection.ExecuteAsync(
             """
             UPDATE "Product"."Origins"
@@ -64,26 +61,21 @@ public class OriginRepository : IOriginRepository
 
     public async Task<bool> DeleteAsync(int id)
     {
-        int beansUsingOrigin;
-        using (var connection = _dbContext.GetConnection())
-        {
-            beansUsingOrigin = await connection.ExecuteScalarAsync<int>(
-                """SELECT COUNT(*) FROM "Product"."Beans" WHERE "OriginId" = @Id""",
-                new { Id = id });
-        }
+        using var connection = dbContext.GetConnection();
+
+        var beansUsingOrigin = await connection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM \"Product\".\"Beans\" WHERE \"OriginId\" = @Id",
+            new { Id = id });
 
         if (beansUsingOrigin > 0)
         {
             return false;
         }
 
-        using (var connection = _dbContext.GetConnection())
-        {
-            var rowsAffected = await connection.ExecuteAsync(
-                """DELETE FROM "Product"."Origins" WHERE "Id" = @Id""",
-                new { Id = id });
+        var rowsAffected = await connection.ExecuteAsync(
+            "DELETE FROM \"Product\".\"Origins\" WHERE \"Id\" = @Id",
+            new { Id = id });
 
-            return rowsAffected > 0;
-        }
+        return rowsAffected > 0;
     }
 }

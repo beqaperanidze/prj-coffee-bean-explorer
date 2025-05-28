@@ -5,23 +5,18 @@ using Dapper;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
-public class UserListRepository : IUserListRepository
+public class UserListRepository(DbConnectionFactory dbContext) : IUserListRepository
 {
-    private readonly DatabaseContext _dbContext;
-
-    public UserListRepository(DatabaseContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async Task<IEnumerable<UserList>> GetAllAsync()
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var userListDictionary = new Dictionary<int, UserList>();
 
         await connection.QueryAsync<UserList, User, UserList>(
             """
-            SELECT ul.*, u.*
+            SELECT 
+                ul."Id", ul."UserId", ul."Name", ul."CreatedAt", ul."UpdatedAt",
+                u."Id", u."Username", u."Email", u."FirstName", u."LastName", u."Role", u."CreatedAt", u."UpdatedAt"
             FROM "Social"."UserLists" ul
             JOIN "Auth"."Users" u ON ul."UserId" = u."Id"
             """,
@@ -38,9 +33,10 @@ public class UserListRepository : IUserListRepository
         {
             var items = await connection.QueryAsync<ListItem, Bean, Origin, ListItem>(
                 """
-                SELECT li."ListId", li."BeanId", li."CreatedAt", 
-                       b."Id", b."Name", b."OriginId", b."Price", 
-                       o."Id", o."Country", o."Region"
+                SELECT 
+                    li."ListId", li."BeanId", li."CreatedAt",
+                    b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt",
+                    o."Id", o."Country", o."Region", o."CreatedAt", o."UpdatedAt"
                 FROM "Social"."ListItems" li
                 JOIN "Product"."Beans" b ON li."BeanId" = b."Id"
                 LEFT JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
@@ -67,10 +63,11 @@ public class UserListRepository : IUserListRepository
 
     public async Task<UserList?> GetByIdAsync(int id)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var userList = await connection.QuerySingleOrDefaultAsync<UserList>(
             """
-            SELECT * FROM "Social"."UserLists" 
+            SELECT "Id", "UserId", "Name", "CreatedAt", "UpdatedAt"
+            FROM "Social"."UserLists"
             WHERE "Id" = @Id
             """,
             new { Id = id });
@@ -80,16 +77,18 @@ public class UserListRepository : IUserListRepository
 
         userList.User = await connection.QuerySingleOrDefaultAsync<User>(
             """
-            SELECT * FROM "Auth"."Users" 
+            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", "UpdatedAt"
+            FROM "Auth"."Users"
             WHERE "Id" = @UserId
             """,
             new { userList.UserId });
 
         var items = await connection.QueryAsync<ListItem, Bean, Origin, ListItem>(
             """
-            SELECT li."ListId", li."BeanId", li."CreatedAt",
-                   b."Id", b."Name", b."OriginId", b."Price",
-                   o."Id", o."Country", o."Region"
+            SELECT 
+                li."ListId", li."BeanId", li."CreatedAt",
+                b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt",
+                o."Id", o."Country", o."Region", o."CreatedAt", o."UpdatedAt"
             FROM "Social"."ListItems" li
             JOIN "Product"."Beans" b ON li."BeanId" = b."Id"
             LEFT JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
@@ -115,12 +114,13 @@ public class UserListRepository : IUserListRepository
 
     public async Task<IEnumerable<UserList>> GetByUserIdAsync(int userId)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var userListDictionary = new Dictionary<int, UserList>();
 
         var userLists = await connection.QueryAsync<UserList>(
             """
-            SELECT * FROM "Social"."UserLists"
+            SELECT "Id", "UserId", "Name", "CreatedAt", "UpdatedAt"
+            FROM "Social"."UserLists"
             WHERE "UserId" = @UserId
             """,
             new { UserId = userId });
@@ -132,7 +132,8 @@ public class UserListRepository : IUserListRepository
 
         var user = await connection.QuerySingleOrDefaultAsync<User>(
             """
-            SELECT * FROM "Auth"."Users" 
+            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", "UpdatedAt"
+            FROM "Auth"."Users"
             WHERE "Id" = @UserId
             """,
             new { UserId = userId });
@@ -143,9 +144,10 @@ public class UserListRepository : IUserListRepository
 
             var items = await connection.QueryAsync<ListItem, Bean, Origin, ListItem>(
                 """
-                SELECT li."ListId", li."BeanId", li."CreatedAt",
-                       b."Id", b."Name", b."OriginId", b."Price",
-                       o."Id", o."Country", o."Region"
+                SELECT 
+                    li."ListId", li."BeanId", li."CreatedAt",
+                    b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt",
+                    o."Id", o."Country", o."Region", o."CreatedAt", o."UpdatedAt"
                 FROM "Social"."ListItems" li
                 JOIN "Product"."Beans" b ON li."BeanId" = b."Id"
                 LEFT JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
@@ -172,22 +174,21 @@ public class UserListRepository : IUserListRepository
 
     public async Task<UserList> AddAsync(UserList userList)
     {
-        using var connection = _dbContext.GetConnection();
-        var id = await connection.ExecuteScalarAsync<int>(
+        using var connection = dbContext.GetConnection();
+        var insertedUserList = await connection.QuerySingleAsync<UserList>(
             """
             INSERT INTO "Social"."UserLists" ("UserId", "Name")
             VALUES (@UserId, @Name)
-            RETURNING "Id"
+            RETURNING "Id", "UserId", "Name", "CreatedAt", "UpdatedAt"
             """,
             userList);
 
-        userList.Id = id;
-        return (await GetByIdAsync(id))!;
+        return insertedUserList;
     }
 
     public async Task<bool> UpdateAsync(UserList userList)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var rowsAffected = await connection.ExecuteAsync(
             """
             UPDATE "Social"."UserLists"
@@ -202,32 +203,40 @@ public class UserListRepository : IUserListRepository
 
     public async Task<bool> DeleteAsync(int id)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
+        using var transaction = connection.BeginTransaction();
 
-        await connection.ExecuteAsync(
-            """
-            DELETE FROM "Social"."ListItems"
-            WHERE "ListId" = @Id
-            """,
-            new { Id = id });
+        try
+        {
+            await connection.ExecuteAsync(
+                """
+                DELETE FROM "Social"."ListItems" WHERE "ListId" = @Id;
+                DELETE FROM "Social"."UserLists" WHERE "Id" = @Id;
+                """,
+                new { Id = id },
+                transaction);
 
-        var rowsAffected = await connection.ExecuteAsync(
-            """
-            DELETE FROM "Social"."UserLists"
-            WHERE "Id" = @Id
-            """,
-            new { Id = id });
+            transaction.Commit();
+            var exists = await connection.ExecuteScalarAsync<bool>(
+                "SELECT COUNT(*) > 0 FROM \"Social\".\"UserLists\" WHERE \"Id\" = @Id",
+                new { Id = id });
 
-        return rowsAffected > 0;
+            return !exists;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 
     public async Task<bool> AddBeanToListAsync(int listId, int beanId)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
 
         var exists = await connection.ExecuteScalarAsync<bool>(
             """
-            SELECT COUNT(1) > 0
+            SELECT COUNT(*) > 0
             FROM "Social"."ListItems"
             WHERE "ListId" = @ListId AND "BeanId" = @BeanId
             """,
@@ -250,7 +259,7 @@ public class UserListRepository : IUserListRepository
 
     public async Task<bool> RemoveBeanFromListAsync(int listId, int beanId)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var rowsAffected = await connection.ExecuteAsync(
             """
             DELETE FROM "Social"."ListItems"

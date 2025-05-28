@@ -5,26 +5,22 @@ using Dapper;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
-public class BeanRepository : IBeanRepository
+public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
 {
-    private readonly DatabaseContext _dbContext;
-
-    public BeanRepository(DatabaseContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async Task<IEnumerable<Bean>> GetAllAsync()
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
 
         var beanDict = new Dictionary<int, Bean>();
 
         await connection.QueryAsync<Bean, Origin, Tag, Bean>(
             """
-            SELECT b.*, o.*, t.*
+            SELECT
+                b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt",
+                o."Id", o."Country", o."Region",
+                t."Id", t."Name"
             FROM "Product"."Beans" b
-            LEFT JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
+            INNER JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
             LEFT JOIN "Product"."BeansTags" bt ON b."Id" = bt."BeanId"
             LEFT JOIN "Product"."Tags" t ON bt."TagId" = t."Id"
             ORDER BY b."Id"
@@ -59,15 +55,18 @@ public class BeanRepository : IBeanRepository
 
     public async Task<Bean?> GetByIdAsync(int id)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
 
         Bean? result = null;
 
         await connection.QueryAsync<Bean, Origin, Tag, Bean>(
             """
-            SELECT b.*, o.*, t.*
+            SELECT
+                b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt",
+                o."Id", o."Country", o."Region",
+                t."Id", t."Name"
             FROM "Product"."Beans" b
-            LEFT JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
+            INNER JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
             LEFT JOIN "Product"."BeansTags" bt ON b."Id" = bt."BeanId"
             LEFT JOIN "Product"."Tags" t ON bt."TagId" = t."Id"
             WHERE b."Id" = @Id
@@ -97,18 +96,17 @@ public class BeanRepository : IBeanRepository
             new { Id = id },
             splitOn: "Id,Id"
         );
-        Console.WriteLine("          " + (result?.BeanTags.Count ?? 0));
         return result;
     }
 
     public async Task<Bean> AddAsync(Bean bean)
     {
-        using var connection = _dbContext.GetConnection();
-        var id = await connection.ExecuteScalarAsync<int>(
+        using var connection = dbContext.GetConnection();
+        var insertedBean = await connection.QuerySingleAsync<Bean>(
             """
             INSERT INTO "Product"."Beans" ("Name", "OriginId", "RoastLevel", "Description", "Price")
             VALUES (@Name, @OriginId, @RoastLevel::text::"RoastLevel", @Description, @Price)
-            RETURNING "Id"
+            RETURNING "Id", "Name", "OriginId", "RoastLevel", "Description", "Price", "CreatedAt", "UpdatedAt"
             """,
             new
             {
@@ -119,13 +117,12 @@ public class BeanRepository : IBeanRepository
                 bean.Price
             });
 
-        bean.Id = id;
-        return (await GetByIdAsync(id))!;
+        return insertedBean;
     }
 
     public async Task<bool> UpdateAsync(Bean bean)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var rowsAffected = await connection.ExecuteAsync(
             """
             UPDATE "Product"."Beans"
@@ -152,20 +149,31 @@ public class BeanRepository : IBeanRepository
 
     public async Task<bool> DeleteAsync(int id)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
+        using var transaction = connection.BeginTransaction();
 
-        await connection.ExecuteAsync(
-            """DELETE FROM "Product"."BeansTags" WHERE "BeanId" = @Id""",
-            new { Id = id });
+        try
+        {
+            await connection.ExecuteAsync(
+                """
+                DELETE FROM "Product"."BeansTags" WHERE "BeanId" = @Id;
+                DELETE FROM "Social"."Reviews" WHERE "BeanId" = @Id;
+                DELETE FROM "Product"."Beans" WHERE "Id" = @Id;
+                """,
+                new { Id = id },
+                transaction);
 
-        await connection.ExecuteAsync(
-            """DELETE FROM "Social"."Reviews" WHERE "BeanId" = @Id""",
-            new { Id = id });
+            transaction.Commit();
+            var exists = await connection.ExecuteScalarAsync<bool>(
+                "SELECT COUNT(*) > 0 FROM \"Product\".\"Beans\" WHERE \"Id\" = @Id",
+                new { Id = id });
 
-        var rowsAffected = await connection.ExecuteAsync(
-            """DELETE FROM "Product"."Beans" WHERE "Id" = @Id""",
-            new { Id = id });
-
-        return rowsAffected > 0;
+            return !exists;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 }

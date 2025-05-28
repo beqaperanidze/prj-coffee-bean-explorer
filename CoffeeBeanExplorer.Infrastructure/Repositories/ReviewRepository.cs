@@ -5,21 +5,17 @@ using Dapper;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
-public class ReviewRepository : IReviewRepository
+public class ReviewRepository(DbConnectionFactory dbContext) : IReviewRepository
 {
-    private readonly DatabaseContext _dbContext;
-
-    public ReviewRepository(DatabaseContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async Task<IEnumerable<Review>> GetAllAsync()
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         return await connection.QueryAsync<Review, User, Bean, Review>(
             """
-            SELECT r.*, u.*, b.*
+            SELECT 
+                r."Id", r."UserId", r."BeanId", r."Rating", r."Comment", r."CreatedAt", r."UpdatedAt",
+                u."Id", u."Username", u."Email", u."FirstName", u."LastName", u."Role", u."CreatedAt", u."UpdatedAt",
+                b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt"
             FROM "Social"."Reviews" r
             JOIN "Auth"."Users" u ON r."UserId" = u."Id"
             JOIN "Product"."Beans" b ON r."BeanId" = b."Id"
@@ -36,10 +32,13 @@ public class ReviewRepository : IReviewRepository
 
     public async Task<Review?> GetByIdAsync(int id)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var reviews = await connection.QueryAsync<Review, User, Bean, Review>(
             """
-            SELECT r.*, u.*, b.*
+            SELECT 
+                r."Id", r."UserId", r."BeanId", r."Rating", r."Comment", r."CreatedAt", r."UpdatedAt",
+                u."Id", u."Username", u."Email", u."FirstName", u."LastName", u."Role", u."CreatedAt", u."UpdatedAt",
+                b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt"
             FROM "Social"."Reviews" r
             JOIN "Auth"."Users" u ON r."UserId" = u."Id"
             JOIN "Product"."Beans" b ON r."BeanId" = b."Id"
@@ -60,10 +59,12 @@ public class ReviewRepository : IReviewRepository
 
     public async Task<IEnumerable<Review>> GetByBeanIdAsync(int beanId)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         return await connection.QueryAsync<Review, User, Review>(
             """
-            SELECT r.*, u.*
+            SELECT 
+                r."Id", r."UserId", r."BeanId", r."Rating", r."Comment", r."CreatedAt", r."UpdatedAt",
+                u."Id", u."Username", u."Email", u."FirstName", u."LastName", u."Role", u."CreatedAt", u."UpdatedAt"
             FROM "Social"."Reviews" r
             JOIN "Auth"."Users" u ON r."UserId" = u."Id"
             WHERE r."BeanId" = @BeanId
@@ -80,10 +81,12 @@ public class ReviewRepository : IReviewRepository
 
     public async Task<IEnumerable<Review>> GetByUserIdAsync(int userId)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         return await connection.QueryAsync<Review, Bean, Review>(
             """
-            SELECT r.*, b.*
+            SELECT 
+                r."Id", r."UserId", r."BeanId", r."Rating", r."Comment", r."CreatedAt", r."UpdatedAt",
+                b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt"
             FROM "Social"."Reviews" r
             JOIN "Product"."Beans" b ON r."BeanId" = b."Id"
             WHERE r."UserId" = @UserId
@@ -100,10 +103,10 @@ public class ReviewRepository : IReviewRepository
 
     public async Task<bool> HasUserReviewedBeanAsync(int userId, int beanId)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         return await connection.ExecuteScalarAsync<bool>(
             """
-            SELECT COUNT(1) > 0
+            SELECT COUNT(*) > 0
             FROM "Social"."Reviews"
             WHERE "UserId" = @UserId AND "BeanId" = @BeanId
             """,
@@ -112,22 +115,21 @@ public class ReviewRepository : IReviewRepository
 
     public async Task<Review> AddAsync(Review review)
     {
-        using var connection = _dbContext.GetConnection();
-        var id = await connection.ExecuteScalarAsync<int>(
+        using var connection = dbContext.GetConnection();
+        var insertedReview = await connection.QuerySingleAsync<Review>(
             """
             INSERT INTO "Social"."Reviews" ("UserId", "BeanId", "Rating", "Comment")
             VALUES (@UserId, @BeanId, @Rating, @Comment)
-            RETURNING "Id"
+            RETURNING "Id", "UserId", "BeanId", "Rating", "Comment", "CreatedAt", "UpdatedAt"
             """,
             review);
 
-        review.Id = id;
-        return (await GetByIdAsync(id))!;
+        return insertedReview;
     }
 
     public async Task<bool> UpdateAsync(Review review)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var rowsAffected = await connection.ExecuteAsync(
             """
             UPDATE "Social"."Reviews"
@@ -143,10 +145,10 @@ public class ReviewRepository : IReviewRepository
 
     public async Task<bool> DeleteAsync(int id)
     {
-        using var connection = _dbContext.GetConnection();
+        using var connection = dbContext.GetConnection();
         var rowsAffected = await connection.ExecuteAsync(
             """
-            DELETE FROM "Social"."Reviews" 
+            DELETE FROM "Social"."Reviews"
             WHERE "Id" = @Id
             """,
             new { Id = id });

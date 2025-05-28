@@ -53,7 +53,7 @@ builder.Services.AddRateLimiter(options =>
         config.QueueLimit = rateLimitSettings?.QueueLimit ?? 10;
     });
 });
-builder.Services.AddScoped<DatabaseContext>();
+builder.Services.AddScoped<DbConnectionFactory>();
 
 builder.Services.AddScoped<IBeanRepository, BeanRepository>();
 builder.Services.AddScoped<IOriginRepository, OriginRepository>();
