@@ -11,7 +11,7 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
     {
         using var connection = dbContext.GetConnection();
 
-        var beanDict = new Dictionary<int, Bean>();
+        var beansById = new Dictionary<int, Bean>();
 
         await connection.QueryAsync<Bean, Origin, Tag, Bean>(
             """
@@ -27,11 +27,11 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
             """,
             (bean, origin, tag) =>
             {
-                if (!beanDict.TryGetValue(bean.Id, out var existingBean))
+                if (!beansById.TryGetValue(bean.Id, out var existingBean))
                 {
                     bean.Origin = origin;
                     bean.BeanTags = new List<BeanTag>();
-                    beanDict.Add(bean.Id, bean);
+                    beansById.Add(bean.Id, bean);
                     existingBean = bean;
                 }
 
@@ -50,7 +50,7 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
             splitOn: "Id,Id"
         );
 
-        return beanDict.Values;
+        return beansById.Values;
     }
 
     public async Task<Bean?> GetByIdAsync(int id)
@@ -152,28 +152,21 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
         using var connection = dbContext.GetConnection();
         using var transaction = connection.BeginTransaction();
 
-        try
-        {
-            await connection.ExecuteAsync(
-                """
-                DELETE FROM "Product"."BeansTags" WHERE "BeanId" = @Id;
-                DELETE FROM "Social"."Reviews" WHERE "BeanId" = @Id;
-                DELETE FROM "Product"."Beans" WHERE "Id" = @Id;
-                """,
-                new { Id = id },
-                transaction);
+        await connection.ExecuteAsync(
+            """
+            DELETE FROM "Product"."BeansTags" WHERE "BeanId" = @Id;
+            DELETE FROM "Social"."Reviews" WHERE "BeanId" = @Id;
+            DELETE FROM "Product"."Beans" WHERE "Id" = @Id;
+            """,
+            new { Id = id },
+            transaction);
 
-            transaction.Commit();
-            var exists = await connection.ExecuteScalarAsync<bool>(
-                "SELECT COUNT(*) > 0 FROM \"Product\".\"Beans\" WHERE \"Id\" = @Id",
-                new { Id = id });
+        transaction.Commit();
 
-            return !exists;
-        }
-        catch
-        {
-            transaction.Rollback();
-            throw;
-        }
+        var exists = await connection.ExecuteScalarAsync<bool>(
+            "SELECT COUNT(*) > 0 FROM \"Product\".\"Beans\" WHERE \"Id\" = @Id",
+            new { Id = id });
+
+        return !exists;
     }
 }
