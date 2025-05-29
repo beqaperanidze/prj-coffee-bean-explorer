@@ -14,7 +14,7 @@ public class BeanDto
     public decimal Price { get; set; } 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public List<string> Tags { get; set; } = new List<string>(); 
+    public List<TagDto> Tags { get; set; }
 }
 
 public class CreateBeanDto

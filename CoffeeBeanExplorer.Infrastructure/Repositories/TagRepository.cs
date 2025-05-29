@@ -1,91 +1,142 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CoffeeBeanExplorer.Domain.Models;
+﻿using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
-
+using CoffeeBeanExplorer.Infrastructure.Data;
+using Dapper;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
-public class TagRepository : ITagRepository
+public class TagRepository(DbConnectionFactory dbContext) : ITagRepository
 {
-    private static readonly List<Tag> _tags = [];
-    private static readonly List<BeanTag> _beanTags = [];
-    private static int _nextId = 1;
-
-    public Task<IEnumerable<Tag>> GetAllAsync() => Task.FromResult<IEnumerable<Tag>>(_tags);
-
-    public Task<Tag?> GetByIdAsync(int id)
+    public async Task<IEnumerable<Tag>> GetAllAsync()
     {
-        return Task.FromResult(_tags.FirstOrDefault(t => t.Id == id));
+        using var connection = dbContext.GetConnection();
+        return await connection.QueryAsync<Tag>(
+            """
+            SELECT "Id", "Name", "CreatedAt", "UpdatedAt"
+            FROM "Product"."Tags"
+            """);
     }
 
-    public Task<IEnumerable<Tag>> GetByBeanIdAsync(int beanId)
+    public async Task<Tag?> GetByIdAsync(int id)
     {
-        var tagIds = _beanTags
-            .Where(bt => bt.BeanId == beanId)
-            .Select(bt => bt.TagId);
-
-        return Task.FromResult(_tags.Where(t => tagIds.Contains(t.Id)));
+        using var connection = dbContext.GetConnection();
+        return await connection.QuerySingleOrDefaultAsync<Tag>(
+            """
+            SELECT "Id", "Name", "CreatedAt", "UpdatedAt"
+            FROM "Product"."Tags" 
+            WHERE "Id" = @Id
+            """,
+            new { Id = id });
     }
 
-    public Task<Tag> AddAsync(Tag tag)
+    public async Task<IEnumerable<Tag>> GetByBeanIdAsync(int beanId)
     {
-        tag.Id = _nextId++;
-        tag.CreatedAt = DateTime.UtcNow;
-        tag.UpdatedAt = DateTime.UtcNow;
-        _tags.Add(tag);
-        return Task.FromResult(tag);
+        using var connection = dbContext.GetConnection();
+        return await connection.QueryAsync<Tag>(
+            """
+            SELECT t."Id", t."Name", t."CreatedAt", t."UpdatedAt"
+            FROM "Product"."Tags" t
+            JOIN "Product"."BeansTags" bt ON t."Id" = bt."TagId"
+            WHERE bt."BeanId" = @BeanId
+            """,
+            new { BeanId = beanId });
     }
 
-    public Task<bool> UpdateAsync(Tag tag)
+    public async Task<Tag> AddAsync(Tag tag)
     {
-        var existingTag = _tags.FirstOrDefault(t => t.Id == tag.Id);
-        if (existingTag is null) return Task.FromResult(false);
+        using var connection = dbContext.GetConnection();
+        var insertedTag = await connection.QuerySingleAsync<Tag>(
+            """
+            INSERT INTO "Product"."Tags" ("Name")
+            VALUES (@Name)
+            RETURNING "Id", "Name", "CreatedAt", "UpdatedAt"
+            """,
+            tag);
 
-        existingTag.Name = tag.Name;
-        existingTag.UpdatedAt = DateTime.UtcNow;
-
-        return Task.FromResult(true);
+        return insertedTag;
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public async Task<bool> UpdateAsync(Tag tag)
     {
-        var tag = _tags.FirstOrDefault(t => t.Id == id);
-        if (tag is null) return Task.FromResult(false);
+        using var connection = dbContext.GetConnection();
+        var rowsAffected = await connection.ExecuteAsync(
+            """
+            UPDATE "Product"."Tags"
+            SET "Name" = @Name,
+                "UpdatedAt" = now()
+            WHERE "Id" = @Id
+            """,
+            tag);
 
-        _beanTags.RemoveAll(bt => bt.TagId == id);
-
-        return Task.FromResult(_tags.Remove(tag));
+        return rowsAffected > 0;
     }
 
-    public Task<bool> AddTagToBeanAsync(int tagId, int beanId)
+    public async Task<bool> DeleteAsync(int id)
     {
-        if (_beanTags.Any(bt => bt.TagId == tagId && bt.BeanId == beanId))
+        using var connection = dbContext.GetConnection();
+        using var transaction = connection.BeginTransaction();
+
+        try
         {
-            return Task.FromResult(false);
+            await connection.ExecuteAsync(
+                """
+                DELETE FROM "Product"."BeansTags" WHERE "TagId" = @Id;
+                DELETE FROM "Product"."Tags" WHERE "Id" = @Id;
+                """,
+                new { Id = id },
+                transaction);
+
+            transaction.Commit();
+            var exists = await connection.ExecuteScalarAsync<bool>(
+                "SELECT COUNT(*) > 0 FROM \"Product\".\"Tags\" WHERE \"Id\" = @Id",
+                new { Id = id });
+
+            return !exists;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+
+    public async Task<bool> AddTagToBeanAsync(int tagId, int beanId)
+    {
+        using var connection = dbContext.GetConnection();
+
+        var exists = await connection.ExecuteScalarAsync<bool>(
+            """
+            SELECT COUNT(*) > 0
+            FROM "Product"."BeansTags" 
+            WHERE "TagId" = @TagId AND "BeanId" = @BeanId
+            """,
+            new { TagId = tagId, BeanId = beanId });
+
+        if (exists)
+        {
+            return false;
         }
 
-        var tag = _tags.FirstOrDefault(t => t.Id == tagId);
-        var bean = new Bean { Id = beanId };
+        var rowsAffected = await connection.ExecuteAsync(
+            """
+            INSERT INTO "Product"."BeansTags" ("TagId", "BeanId")
+            VALUES (@TagId, @BeanId)
+            """,
+            new { TagId = tagId, BeanId = beanId });
 
-        if (tag == null) return Task.FromResult(false);
-
-        _beanTags.Add(new BeanTag
-        {
-            BeanId = beanId,
-            TagId = tagId,
-            CreatedAt = DateTime.UtcNow,
-            Bean = bean,
-            Tag = tag
-        });
-
-        return Task.FromResult(true);
+        return rowsAffected > 0;
     }
 
-    public Task<bool> RemoveTagFromBeanAsync(int tagId, int beanId)
+    public async Task<bool> RemoveTagFromBeanAsync(int tagId, int beanId)
     {
-        var beanTag = _beanTags.FirstOrDefault(bt => bt.TagId == tagId && bt.BeanId == beanId);
-        return Task.FromResult(beanTag is not null && _beanTags.Remove(beanTag));
+        using var connection = dbContext.GetConnection();
+        var rowsAffected = await connection.ExecuteAsync(
+            """
+            DELETE FROM "Product"."BeansTags" 
+            WHERE "TagId" = @TagId AND "BeanId" = @BeanId
+            """,
+            new { TagId = tagId, BeanId = beanId });
+
+        return rowsAffected > 0;
     }
 }

@@ -1,51 +1,172 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CoffeeBeanExplorer.Domain.Models;
+﻿using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
-
+using CoffeeBeanExplorer.Infrastructure.Data;
+using Dapper;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
-public class BeanRepository : IBeanRepository
+public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
 {
-    private static readonly List<Bean> _beans = [];
-    private static int _nextId = 1;
-
-    public Task<IEnumerable<Bean>> GetAllAsync() => Task.FromResult<IEnumerable<Bean>>(_beans);
-
-    public Task<Bean?> GetByIdAsync(int id)
+    public async Task<IEnumerable<Bean>> GetAllAsync()
     {
-        return Task.FromResult(_beans.FirstOrDefault(b => b.Id == id));
+        using var connection = dbContext.GetConnection();
+
+        var beansById = new Dictionary<int, Bean>();
+
+        await connection.QueryAsync<Bean, Origin, Tag, Bean>(
+            """
+            SELECT
+                b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt",
+                o."Id", o."Country", o."Region",
+                t."Id", t."Name"
+            FROM "Product"."Beans" b
+            INNER JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
+            LEFT JOIN "Product"."BeansTags" bt ON b."Id" = bt."BeanId"
+            LEFT JOIN "Product"."Tags" t ON bt."TagId" = t."Id"
+            ORDER BY b."Id"
+            """,
+            (bean, origin, tag) =>
+            {
+                if (!beansById.TryGetValue(bean.Id, out var existingBean))
+                {
+                    bean.Origin = origin;
+                    bean.BeanTags = new List<BeanTag>();
+                    beansById.Add(bean.Id, bean);
+                    existingBean = bean;
+                }
+
+                if (tag != null && tag.Id != 0)
+                {
+                    existingBean.BeanTags.Add(new BeanTag
+                    {
+                        BeanId = bean.Id,
+                        TagId = tag.Id,
+                        Tag = tag
+                    });
+                }
+
+                return existingBean;
+            },
+            splitOn: "Id,Id"
+        );
+
+        return beansById.Values;
     }
 
-    public Task<Bean> AddAsync(Bean bean)
+    public async Task<Bean?> GetByIdAsync(int id)
     {
-        bean.Id = _nextId++;
-        bean.CreatedAt = DateTime.UtcNow;
-        bean.UpdatedAt = DateTime.UtcNow;
-        _beans.Add(bean);
-        return Task.FromResult(bean);
+        using var connection = dbContext.GetConnection();
+
+        Bean? result = null;
+
+        await connection.QueryAsync<Bean, Origin, Tag, Bean>(
+            """
+            SELECT
+                b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt",
+                o."Id", o."Country", o."Region",
+                t."Id", t."Name"
+            FROM "Product"."Beans" b
+            INNER JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
+            LEFT JOIN "Product"."BeansTags" bt ON b."Id" = bt."BeanId"
+            LEFT JOIN "Product"."Tags" t ON bt."TagId" = t."Id"
+            WHERE b."Id" = @Id
+            ORDER BY b."Id"
+            """,
+            (bean, origin, tag) =>
+            {
+                if (result == null)
+                {
+                    result = bean;
+                    result.Origin = origin;
+                    result.BeanTags = new List<BeanTag>();
+                }
+
+                if (tag != null && tag.Id != 0)
+                {
+                    result.BeanTags.Add(new BeanTag
+                    {
+                        BeanId = bean.Id,
+                        TagId = tag.Id,
+                        Tag = tag
+                    });
+                }
+
+                return result;
+            },
+            new { Id = id },
+            splitOn: "Id,Id"
+        );
+        return result;
     }
 
-    public Task<bool> UpdateAsync(Bean bean)
+    public async Task<Bean> AddAsync(Bean bean)
     {
-        var existingBean = _beans.FirstOrDefault(b => b.Id == bean.Id);
-        if (existingBean is null) return Task.FromResult(false);
+        using var connection = dbContext.GetConnection();
+        var insertedBean = await connection.QuerySingleAsync<Bean>(
+            """
+            INSERT INTO "Product"."Beans" ("Name", "OriginId", "RoastLevel", "Description", "Price")
+            VALUES (@Name, @OriginId, @RoastLevel::text::"RoastLevel", @Description, @Price)
+            RETURNING "Id", "Name", "OriginId", "RoastLevel", "Description", "Price", "CreatedAt", "UpdatedAt"
+            """,
+            new
+            {
+                bean.Name,
+                bean.OriginId,
+                RoastLevel = bean.RoastLevel.ToString(),
+                bean.Description,
+                bean.Price
+            });
 
-        existingBean.Name = bean.Name;
-        existingBean.OriginId = bean.OriginId;
-        existingBean.RoastLevel = bean.RoastLevel;
-        existingBean.Description = bean.Description;
-        existingBean.Price = bean.Price;
-        existingBean.UpdatedAt = DateTime.UtcNow;
-
-        return Task.FromResult(true);
+        return insertedBean;
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public async Task<bool> UpdateAsync(Bean bean)
     {
-        var bean = _beans.FirstOrDefault(b => b.Id == id);
-        return Task.FromResult(bean is not null && _beans.Remove(bean));
+        using var connection = dbContext.GetConnection();
+        var rowsAffected = await connection.ExecuteAsync(
+            """
+            UPDATE "Product"."Beans"
+            SET "Name" = @Name,
+                "OriginId" = @OriginId,
+                "RoastLevel" = @RoastLevel::text::"RoastLevel",
+                "Description" = @Description,
+                "Price" = @Price,
+                "UpdatedAt" = now()
+            WHERE "Id" = @Id
+            """,
+            new
+            {
+                bean.Id,
+                bean.Name,
+                bean.OriginId,
+                RoastLevel = bean.RoastLevel.ToString(),
+                bean.Description,
+                bean.Price
+            });
+
+        return rowsAffected > 0;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        using var connection = dbContext.GetConnection();
+        using var transaction = connection.BeginTransaction();
+
+        await connection.ExecuteAsync(
+            """
+            DELETE FROM "Product"."BeansTags" WHERE "BeanId" = @Id;
+            DELETE FROM "Social"."Reviews" WHERE "BeanId" = @Id;
+            DELETE FROM "Product"."Beans" WHERE "Id" = @Id;
+            """,
+            new { Id = id },
+            transaction);
+
+        transaction.Commit();
+
+        var exists = await connection.ExecuteScalarAsync<bool>(
+            "SELECT COUNT(*) > 0 FROM \"Product\".\"Beans\" WHERE \"Id\" = @Id",
+            new { Id = id });
+
+        return !exists;
     }
 }

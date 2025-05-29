@@ -1,22 +1,20 @@
-using System;
-using System.IO;
 using System.Reflection;
 using CoffeeBeanExplorer.Application.Services.Implementations;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Configuration;
-using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
+using CoffeeBeanExplorer.Infrastructure.Data;
 using CoffeeBeanExplorer.Infrastructure.Repositories;
 using CoffeeBeanExplorer.Services;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -55,13 +53,14 @@ builder.Services.AddRateLimiter(options =>
         config.QueueLimit = rateLimitSettings?.QueueLimit ?? 10;
     });
 });
+builder.Services.AddScoped<DbConnectionFactory>();
 
-builder.Services.AddSingleton<IBeanRepository, BeanRepository>();
-builder.Services.AddSingleton<IOriginRepository, OriginRepository>();
-builder.Services.AddSingleton<IReviewRepository, ReviewRepository>();
-builder.Services.AddSingleton<ITagRepository, TagRepository>();
-builder.Services.AddSingleton<IUserRepository, UserRepository>();
-builder.Services.AddSingleton<IUserListRepository, UserListRepository>();
+builder.Services.AddScoped<IBeanRepository, BeanRepository>();
+builder.Services.AddScoped<IOriginRepository, OriginRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserListRepository, UserListRepository>();
 builder.Services.AddScoped<IBeanService, BeanService>();
 builder.Services.AddScoped<IOriginService, OriginService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();

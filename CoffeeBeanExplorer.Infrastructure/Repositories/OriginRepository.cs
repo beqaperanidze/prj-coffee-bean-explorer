@@ -1,48 +1,81 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CoffeeBeanExplorer.Domain.Models;
+﻿using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
-
+using CoffeeBeanExplorer.Infrastructure.Data;
+using Dapper;
 
 namespace CoffeeBeanExplorer.Infrastructure.Repositories;
 
-public class OriginRepository : IOriginRepository
+public class OriginRepository(DbConnectionFactory dbContext) : IOriginRepository
 {
-    private static readonly List<Origin> _origins = [];
-    private static int _nextId = 1;
-
-    public Task<IEnumerable<Origin>> GetAllAsync() => Task.FromResult<IEnumerable<Origin>>(_origins);
-
-    public Task<Origin?> GetByIdAsync(int id)
+    public async Task<IEnumerable<Origin>> GetAllAsync()
     {
-        return Task.FromResult(_origins.FirstOrDefault(o => o.Id == id));
+        using var connection = dbContext.GetConnection();
+        return await connection.QueryAsync<Origin>(
+            """
+            SELECT "Id", "Country", "Region", "CreatedAt", "UpdatedAt"
+            FROM "Product"."Origins"
+            """);
     }
 
-    public Task<Origin> AddAsync(Origin origin)
+    public async Task<Origin?> GetByIdAsync(int id)
     {
-        origin.Id = _nextId++;
-        origin.CreatedAt = DateTime.UtcNow;
-        origin.UpdatedAt = DateTime.UtcNow;
-        _origins.Add(origin);
-        return Task.FromResult(origin);
+        using var connection = dbContext.GetConnection();
+        return await connection.QuerySingleOrDefaultAsync<Origin>(
+            """
+            SELECT "Id", "Country", "Region", "CreatedAt", "UpdatedAt" 
+            FROM "Product"."Origins" 
+            WHERE "Id" = @Id
+            """,
+            new { Id = id });
     }
 
-    public Task<bool> UpdateAsync(Origin origin)
+    public async Task<Origin> AddAsync(Origin origin)
     {
-        var existingOrigin = _origins.FirstOrDefault(o => o.Id == origin.Id);
-        if (existingOrigin is null) return Task.FromResult(false);
+        using var connection = dbContext.GetConnection();
+        var insertedOrigin = await connection.QuerySingleAsync<Origin>(
+            """
+            INSERT INTO "Product"."Origins" ("Country", "Region")
+            VALUES (@Country, @Region)
+            RETURNING "Id", "Country", "Region", "CreatedAt", "UpdatedAt"
+            """,
+            origin);
 
-        existingOrigin.Country = origin.Country;
-        existingOrigin.Region = origin.Region;
-        existingOrigin.UpdatedAt = DateTime.UtcNow;
-
-        return Task.FromResult(true);
+        return insertedOrigin;
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public async Task<bool> UpdateAsync(Origin origin)
     {
-        var origin = _origins.FirstOrDefault(o => o.Id == id);
-        return Task.FromResult(origin is not null && _origins.Remove(origin));
+        using var connection = dbContext.GetConnection();
+        var rowsAffected = await connection.ExecuteAsync(
+            """
+            UPDATE "Product"."Origins"
+                        SET "Country" = @Country,
+                            "Region" = @Region,
+                            "UpdatedAt" = now()
+                        WHERE "Id" = @Id
+            """,
+            origin);
+
+        return rowsAffected > 0;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        using var connection = dbContext.GetConnection();
+
+        var beansUsingOrigin = await connection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM \"Product\".\"Beans\" WHERE \"OriginId\" = @Id",
+            new { Id = id });
+
+        if (beansUsingOrigin > 0)
+        {
+            return false;
+        }
+
+        var rowsAffected = await connection.ExecuteAsync(
+            "DELETE FROM \"Product\".\"Origins\" WHERE \"Id\" = @Id",
+            new { Id = id });
+
+        return rowsAffected > 0;
     }
 }
