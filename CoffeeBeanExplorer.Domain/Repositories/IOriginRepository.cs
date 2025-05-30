@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using CoffeeBeanExplorer.Domain.Models;
+﻿using CoffeeBeanExplorer.Domain.Models;
 
 namespace CoffeeBeanExplorer.Domain.Repositories;
 
