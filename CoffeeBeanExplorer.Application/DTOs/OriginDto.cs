@@ -15,6 +15,6 @@ public class CreateOriginDto
 
 public class UpdateOriginDto
 {
-    public string? Country { get; set; } 
+    public required string Country { get; set; } 
     public string? Region { get; set; }
 }

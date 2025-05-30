@@ -12,7 +12,7 @@ public class BeanDto
     public RoastLevel RoastLevel { get; set; }
     public string? Description { get; set; }
     public decimal Price { get; set; }
-    public List<TagDto> Tags { get; set; }
+    public List<TagDto>? Tags { get; set; }
 }
 
 public class CreateBeanDto
