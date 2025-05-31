@@ -1,22 +1,23 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using AutoMapper;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
-public class OriginService(IOriginRepository repository) : IOriginService
+public class OriginService(IOriginRepository repository, IMapper mapper) : IOriginService
 {
     public async Task<IEnumerable<OriginDto>> GetAllOriginsAsync()
     {
         var origins = await repository.GetAllAsync();
-        return origins.Select(MapToDto);
+        return mapper.Map<IEnumerable<OriginDto>>(origins);
     }
 
     public async Task<OriginDto?> GetOriginByIdAsync(int id)
     {
         var origin = await repository.GetByIdAsync(id);
-        return origin != null ? MapToDto(origin) : null;
+        return origin != null ? mapper.Map<OriginDto>(origin) : null;
     }
 
     public async Task<OriginDto> CreateOriginAsync(CreateOriginDto dto)
@@ -28,7 +29,7 @@ public class OriginService(IOriginRepository repository) : IOriginService
         };
 
         var addedOrigin = await repository.AddAsync(origin);
-        return MapToDto(addedOrigin);
+        return mapper.Map<OriginDto>(addedOrigin);
     }
 
     public async Task<bool> UpdateOriginAsync(int id, UpdateOriginDto dto)
@@ -45,15 +46,5 @@ public class OriginService(IOriginRepository repository) : IOriginService
     public async Task<bool> DeleteOriginAsync(int id)
     {
         return await repository.DeleteAsync(id);
-    }
-
-    private static OriginDto MapToDto(Origin origin)
-    {
-        return new OriginDto
-        {
-            Id = origin.Id,
-            Country = origin.Country,
-            Region = origin.Region
-        };
     }
 }

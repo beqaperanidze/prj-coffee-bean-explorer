@@ -8,10 +8,10 @@ public class TagDto
 
 public class CreateTagDto
 {
-    public required string Name { get; set; } 
+    public required string Name { get; set; }
 }
 
 public class UpdateTagDto
 {
-    public required string Name { get; set; } 
+    public required string Name { get; set; }
 }

@@ -1,22 +1,23 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using AutoMapper;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
-public class UserService(IUserRepository repository) : IUserService
+public class UserService(IUserRepository repository, IMapper mapper) : IUserService
 {
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
         var users = await repository.GetAllAsync();
-        return users.Select(MapToDto);
+        return mapper.Map<IEnumerable<UserDto>>(users);
     }
 
     public async Task<UserDto?> GetUserByIdAsync(int id)
     {
         var user = await repository.GetByIdAsync(id);
-        return user != null ? MapToDto(user) : null;
+        return user != null ? mapper.Map<UserDto>(user) : null;
     }
 
     public async Task<UserDto> RegisterUserAsync(UserRegistrationDto dto)
@@ -37,7 +38,7 @@ public class UserService(IUserRepository repository) : IUserService
         };
 
         var addedUser = await repository.AddAsync(user);
-        return MapToDto(addedUser);
+        return mapper.Map<UserDto>(addedUser);
     }
 
     public async Task<UserDto?> UpdateUserAsync(int id, UserUpdateDto dto)
@@ -67,24 +68,11 @@ public class UserService(IUserRepository repository) : IUserService
         if (dto.LastName != null)
             user.LastName = dto.LastName;
 
-        return await repository.UpdateAsync(user) ? MapToDto(user) : null;
+        return await repository.UpdateAsync(user) ? mapper.Map<UserDto>(user) : null;
     }
 
     public async Task<bool> DeleteUserAsync(int id)
     {
         return await repository.DeleteAsync(id);
-    }
-
-    private static UserDto MapToDto(User user)
-    {
-        return new UserDto
-        {
-            Id = user.Id,
-            Username = user.Username,
-            Email = user.Email,
-            FirstName = user.FirstName ?? string.Empty,
-            LastName = user.LastName ?? string.Empty,
-            Role = user.Role
-        };
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CoffeeBeanExplorer.Application.DTOs;
-using CoffeeBeanExplorer.Application.Services.Interfaces;
+using CoffeeBeanExplorer.Application.Origins.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeBeanExplorer.Controllers;
@@ -7,7 +8,7 @@ namespace CoffeeBeanExplorer.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/origins")]
-public class OriginController(IOriginService originService) : ControllerBase
+public class OriginController(IMediator mediator) : ControllerBase
 {
     /// <summary>
     ///     Retrieves all coffee origins
@@ -16,7 +17,7 @@ public class OriginController(IOriginService originService) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<OriginDto>>> GetAll()
     {
-        var origins = await originService.GetAllOriginsAsync();
+        var origins = await mediator.Send(new GetAllOriginsQuery());
         return Ok(origins);
     }
 
@@ -28,7 +29,7 @@ public class OriginController(IOriginService originService) : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<OriginDto>> GetById(int id)
     {
-        var origin = await originService.GetOriginByIdAsync(id);
+        var origin = await mediator.Send(new GetOriginByIdQuery(id));
         if (origin is null) return NotFound();
         return Ok(origin);
     }
@@ -41,7 +42,7 @@ public class OriginController(IOriginService originService) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<OriginDto>> Create(CreateOriginDto createDto)
     {
-        var origin = await originService.CreateOriginAsync(createDto);
+        var origin = await mediator.Send(new CreateOriginCommand(createDto));
         return CreatedAtAction(nameof(GetById), new { id = origin.Id }, origin);
     }
 
@@ -54,7 +55,7 @@ public class OriginController(IOriginService originService) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, UpdateOriginDto updateDto)
     {
-        var success = await originService.UpdateOriginAsync(id, updateDto);
+        var success = await mediator.Send(new UpdateOriginCommand(id, updateDto));
         if (!success) return NotFound();
         return NoContent();
     }
@@ -67,7 +68,7 @@ public class OriginController(IOriginService originService) : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var success = await originService.DeleteOriginAsync(id);
+        var success = await mediator.Send(new DeleteOriginCommand(id));
         if (!success) return NotFound();
         return NoContent();
     }

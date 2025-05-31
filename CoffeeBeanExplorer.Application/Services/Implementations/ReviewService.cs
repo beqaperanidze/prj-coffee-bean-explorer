@@ -1,34 +1,35 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using AutoMapper;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
-public class ReviewService(IReviewRepository repository) : IReviewService
+public class ReviewService(IReviewRepository repository, IMapper mapper) : IReviewService
 {
     public async Task<IEnumerable<ReviewDto>> GetAllReviewsAsync()
     {
         var reviews = await repository.GetAllAsync();
-        return reviews.Select(MapToDto);
+        return mapper.Map<IEnumerable<ReviewDto>>(reviews);
     }
 
     public async Task<ReviewDto?> GetReviewByIdAsync(int id)
     {
         var review = await repository.GetByIdAsync(id);
-        return review != null ? MapToDto(review) : null;
+        return review != null ? mapper.Map<ReviewDto>(review) : null;
     }
 
     public async Task<IEnumerable<ReviewDto>> GetReviewsByBeanIdAsync(int beanId)
     {
         var reviews = await repository.GetByBeanIdAsync(beanId);
-        return reviews.Select(MapToDto);
+        return mapper.Map<IEnumerable<ReviewDto>>(reviews);
     }
 
     public async Task<IEnumerable<ReviewDto>> GetReviewsByUserIdAsync(int userId)
     {
         var reviews = await repository.GetByUserIdAsync(userId);
-        return reviews.Select(MapToDto);
+        return mapper.Map<IEnumerable<ReviewDto>>(reviews);
     }
 
     public async Task<(ReviewDto? Review, string? ErrorMessage)> CreateReviewAsync(CreateReviewDto dto, int userId)
@@ -47,7 +48,7 @@ public class ReviewService(IReviewRepository repository) : IReviewService
         var addedReview = await repository.AddAsync(review);
         var fullReview = await repository.GetByIdAsync(addedReview.Id);
 
-        return (MapToDto(fullReview!), null);
+        return (mapper.Map<ReviewDto>(fullReview!), null);
     }
 
     public async Task<bool> UpdateReviewAsync(int id, UpdateReviewDto dto, int userId)
@@ -88,20 +89,6 @@ public class ReviewService(IReviewRepository repository) : IReviewService
             reviews = await repository.GetAllAsync();
         }
 
-        return reviews.Select(MapToDto);
-    }
-
-    private static ReviewDto MapToDto(Review review)
-    {
-        return new ReviewDto
-        {
-            Id = review.Id,
-            UserId = review.UserId,
-            Username = review.User?.Username ?? string.Empty,
-            BeanId = review.BeanId,
-            BeanName = review.Bean?.Name ?? string.Empty,
-            Rating = review.Rating,
-            Comment = review.Comment
-        };
+        return mapper.Map<IEnumerable<ReviewDto>>(reviews);
     }
 }

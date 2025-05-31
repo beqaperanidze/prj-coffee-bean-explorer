@@ -1,22 +1,23 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using AutoMapper;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
-public class BeanService(IBeanRepository repository) : IBeanService
+public class BeanService(IBeanRepository repository, IMapper mapper) : IBeanService
 {
     public async Task<IEnumerable<BeanDto>> GetAllBeansAsync()
     {
         var beans = await repository.GetAllAsync();
-        return beans.Select(MapToDto);
+        return mapper.Map<IEnumerable<BeanDto>>(beans);
     }
 
     public async Task<BeanDto?> GetBeanByIdAsync(int id)
     {
         var bean = await repository.GetByIdAsync(id);
-        return bean != null ? MapToDto(bean) : null;
+        return bean != null ? mapper.Map<BeanDto>(bean) : null;
     }
 
     public async Task<BeanDto> CreateBeanAsync(CreateBeanDto dto)
@@ -31,10 +32,8 @@ public class BeanService(IBeanRepository repository) : IBeanService
         };
 
         var addedBean = await repository.AddAsync(bean);
-
         var fullBean = await repository.GetByIdAsync(addedBean.Id);
-
-        return MapToDto(fullBean!);
+        return mapper.Map<BeanDto>(fullBean!);
     }
 
     public async Task<bool> UpdateBeanAsync(int id, UpdateBeanDto dto)
@@ -54,25 +53,5 @@ public class BeanService(IBeanRepository repository) : IBeanService
     public async Task<bool> DeleteBeanAsync(int id)
     {
         return await repository.DeleteAsync(id);
-    }
-
-    private static BeanDto MapToDto(Bean bean)
-    {
-        return new BeanDto
-        {
-            Id = bean.Id,
-            Name = bean.Name,
-            OriginId = bean.OriginId,
-            OriginCountry = bean.Origin?.Country ?? string.Empty,
-            OriginRegion = bean.Origin?.Region,
-            RoastLevel = bean.RoastLevel,
-            Description = bean.Description,
-            Price = bean.Price,
-            Tags = bean.BeanTags?.Select(bt => new TagDto
-            {
-                Id = bt.Tag!.Id,
-                Name = bt.Tag.Name
-            }).ToList() ?? []
-        };
     }
 }

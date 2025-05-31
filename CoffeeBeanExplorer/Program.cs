@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using CoffeeBeanExplorer.Application.DTOs;
+using CoffeeBeanExplorer.Application.Mapping;
 using CoffeeBeanExplorer.Application.Services.Implementations;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Configuration;
@@ -44,9 +46,10 @@ builder.Services.AddApiVersioning(options =>
     options.ReportApiVersions = true;
     options.ApiVersionReader = new UrlSegmentApiVersionReader();
 });
-
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(OriginDto).Assembly));
 builder.Services.AddGrpc();
-
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.Configure<RateLimitSettings>(
     builder.Configuration.GetSection("RateLimit"));
 

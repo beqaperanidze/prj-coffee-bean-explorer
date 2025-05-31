@@ -6,7 +6,7 @@ public class ReviewDto
 {
     public int Id { get; set; }
     public int UserId { get; set; }
-    public required string Username { get; set; } 
+    public required string Username { get; set; }
     public int BeanId { get; set; }
     public required string BeanName { get; set; }
     public int Rating { get; set; }
