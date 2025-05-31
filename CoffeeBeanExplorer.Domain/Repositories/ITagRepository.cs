@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using CoffeeBeanExplorer.Domain.Models;
+﻿using CoffeeBeanExplorer.Domain.Models;
 
 namespace CoffeeBeanExplorer.Domain.Repositories;
 
@@ -13,4 +12,5 @@ public interface ITagRepository
     Task<bool> DeleteAsync(int id);
     Task<bool> AddTagToBeanAsync(int tagId, int beanId);
     Task<bool> RemoveTagFromBeanAsync(int tagId, int beanId);
+    Task<IEnumerable<Bean>> GetBeansByTagIdAsync(int tagId);
 }

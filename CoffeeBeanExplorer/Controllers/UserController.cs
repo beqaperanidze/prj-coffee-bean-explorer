@@ -1,48 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using CoffeeBeanExplorer.Application.DTOs;
+﻿using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeBeanExplorer.Controllers;
 
 [ApiController]
-[Route("/api/[controller]")]
-public class UserController : ControllerBase
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/users")]
+public class UserController(IUserService userService) : ControllerBase
 {
-    private readonly IUserService _userService;
-
-    public UserController(IUserService userService)
-    {
-        _userService = userService;
-    }
-
     /// <summary>
-    /// Retrieves all users
+    ///     Retrieves all users
     /// </summary>
     /// <returns>List of all users</returns>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
     {
-        var users = await _userService.GetAllUsersAsync();
+        var users = await userService.GetAllUsersAsync();
         return Ok(users);
     }
 
     /// <summary>
-    /// Retrieves a specific user by ID
+    ///     Retrieves a specific user by ID
     /// </summary>
     /// <param name="id">The ID of the user to retrieve</param>
     /// <returns>The requested user or NotFound</returns>
     [HttpGet("{id:int}")]
     public async Task<ActionResult<UserDto>> GetById(int id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
+        var user = await userService.GetUserByIdAsync(id);
         if (user == null) return NotFound();
         return Ok(user);
     }
 
     /// <summary>
-    /// Creates a new user
+    ///     Creates a new user
     /// </summary>
     /// <param name="userRegistrationDto">The user data for registration</param>
     /// <returns>The created user with its new ID</returns>
@@ -51,17 +43,17 @@ public class UserController : ControllerBase
     {
         try
         {
-            var user = await _userService.RegisterUserAsync(userRegistrationDto);
+            var user = await userService.RegisterUserAsync(userRegistrationDto);
             return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
     }
 
     /// <summary>
-    /// Updates an existing user by ID
+    ///     Updates an existing user by ID
     /// </summary>
     /// <param name="id">ID of the user to update</param>
     /// <param name="userUpdateDto">New user data</param>
@@ -71,25 +63,25 @@ public class UserController : ControllerBase
     {
         try
         {
-            var user = await _userService.UpdateUserAsync(id, userUpdateDto);
+            var user = await userService.UpdateUserAsync(id, userUpdateDto);
             if (user == null) return NotFound();
             return Ok(user);
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
     }
 
     /// <summary>
-    /// Deletes a user by ID
+    ///     Deletes a user by ID
     /// </summary>
     /// <param name="id">ID of the user to delete</param>
     /// <returns>No content on success</returns>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var success = await _userService.DeleteUserAsync(id);
+        var success = await userService.DeleteUserAsync(id);
         if (!success) return NotFound();
         return NoContent();
     }

@@ -12,4 +12,5 @@ public interface ITagService
     Task<bool> DeleteTagAsync(int id);
     Task<bool> AddTagToBeanAsync(int tagId, int beanId);
     Task<bool> RemoveTagFromBeanAsync(int tagId, int beanId);
+    Task<IEnumerable<BeanDto>> GetBeansByTagIdAsync(int tagId);
 }

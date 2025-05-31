@@ -5,34 +5,32 @@ namespace CoffeeBeanExplorer.Application.DTOs;
 public class BeanDto
 {
     public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
     public int OriginId { get; set; }
-    public string OriginCountry { get; set; } = string.Empty;
+    public required string OriginCountry { get; set; }
     public string? OriginRegion { get; set; }
     public RoastLevel RoastLevel { get; set; }
     public string? Description { get; set; }
-    public decimal Price { get; set; } 
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public List<TagDto> Tags { get; set; }
+    public decimal Price { get; set; }
+    public List<TagDto>? Tags { get; set; }
 }
 
 public class CreateBeanDto
 {
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
     public int OriginId { get; set; }
-    public RoastLevel RoastLevel { get; set; } = RoastLevel.Light;
-    public string? Description { get; set; } 
-    public decimal Price { get; set; } 
-    public List<int>? TagIds { get; set; } 
+    public RoastLevel RoastLevel { get; set; }
+    public string? Description { get; set; }
+    public decimal Price { get; set; }
+    public List<int>? TagIds { get; set; }
 }
 
 public class UpdateBeanDto
 {
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
     public int OriginId { get; set; }
     public RoastLevel RoastLevel { get; set; }
-    public string? Description { get; set; } 
-    public decimal Price { get; set; } 
-    public List<int>? TagIds { get; set; } 
+    public string? Description { get; set; }
+    public decimal Price { get; set; }
+    public List<int>? TagIds { get; set; }
 }

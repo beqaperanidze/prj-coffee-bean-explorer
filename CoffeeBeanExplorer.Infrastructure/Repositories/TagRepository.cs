@@ -112,10 +112,7 @@ public class TagRepository(DbConnectionFactory dbContext) : ITagRepository
             """,
             new { TagId = tagId, BeanId = beanId });
 
-        if (exists)
-        {
-            return false;
-        }
+        if (exists) return false;
 
         var rowsAffected = await connection.ExecuteAsync(
             """
@@ -138,5 +135,51 @@ public class TagRepository(DbConnectionFactory dbContext) : ITagRepository
             new { TagId = tagId, BeanId = beanId });
 
         return rowsAffected > 0;
+    }
+
+    public async Task<IEnumerable<Bean>> GetBeansByTagIdAsync(int tagId)
+    {
+        using var connection = dbContext.GetConnection();
+
+        var beansById = new Dictionary<int, Bean>();
+
+        await connection.QueryAsync<Bean, Origin, Tag, Bean>(
+            """
+            SELECT
+                b."Id", b."Name", b."OriginId", b."RoastLevel", b."Description", b."Price", b."CreatedAt", b."UpdatedAt",
+                o."Id", o."Country", o."Region",
+                t."Id", t."Name"
+            FROM "Product"."Beans" b
+            INNER JOIN "Product"."Origins" o ON b."OriginId" = o."Id"
+            INNER JOIN "Product"."BeansTags" bt ON b."Id" = bt."BeanId"
+            LEFT JOIN "Product"."Tags" t ON bt."TagId" = t."Id"
+            WHERE bt."TagId" = @TagId
+            ORDER BY b."Id"
+            """,
+            (bean, origin, tag) =>
+            {
+                if (!beansById.TryGetValue(bean.Id, out var existingBean))
+                {
+                    bean.Origin = origin;
+                    bean.BeanTags = new List<BeanTag>();
+                    beansById.Add(bean.Id, bean);
+                    existingBean = bean;
+                }
+
+                if (tag != null && tag.Id != 0)
+                    existingBean.BeanTags.Add(new BeanTag
+                    {
+                        BeanId = bean.Id,
+                        TagId = tag.Id,
+                        Tag = tag
+                    });
+
+                return existingBean;
+            },
+            new { TagId = tagId },
+            splitOn: "Id,Id"
+        );
+
+        return beansById.Values;
     }
 }
