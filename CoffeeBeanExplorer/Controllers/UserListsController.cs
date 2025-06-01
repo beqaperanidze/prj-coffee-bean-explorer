@@ -25,10 +25,13 @@ public class UserListController(IUserListService userListService) : ControllerBa
     /// </summary>
     /// <param name="id">The ID of the user list to retrieve</param>
     /// <returns>The requested user list or NotFound</returns>
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<UserListDto>> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<UserListDto>> GetById(string id)
     {
-        var list = await userListService.GetListByIdAsync(id);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var list = await userListService.GetListByIdAsync(parsedId);
         if (list is null) return NotFound();
         return Ok(list);
     }
@@ -38,10 +41,13 @@ public class UserListController(IUserListService userListService) : ControllerBa
     /// </summary>
     /// <param name="userId">ID of the user to get lists for</param>
     /// <returns>List of user lists for the specified user</returns>
-    [HttpGet("users/{userId:int}")]
-    public async Task<ActionResult<IEnumerable<UserListDto>>> GetUserLists(int userId)
+    [HttpGet("users/{userId}")]
+    public async Task<ActionResult<IEnumerable<UserListDto>>> GetUserLists(string userId)
     {
-        var lists = await userListService.GetListsByUserIdAsync(userId);
+        if (!int.TryParse(userId, out var parsedUserId))
+            return BadRequest("Invalid user ID format or value too large.");
+
+        var lists = await userListService.GetListsByUserIdAsync(parsedUserId);
         return Ok(lists);
     }
 
@@ -51,10 +57,13 @@ public class UserListController(IUserListService userListService) : ControllerBa
     /// <param name="dto">The user list data to create</param>
     /// <param name="userId">ID of the user creating the list</param>
     /// <returns>The created user list with its new ID</returns>
-    [HttpPost("users/{userId:int}")]
-    public async Task<ActionResult<UserListDto>> Create([FromBody] CreateUserListDto dto, int userId)
+    [HttpPost("users/{userId}")]
+    public async Task<ActionResult<UserListDto>> Create([FromBody] CreateUserListDto dto, string userId)
     {
-        var list = await userListService.CreateListAsync(dto, userId);
+        if (!int.TryParse(userId, out var parsedUserId))
+            return BadRequest("Invalid user ID format or value too large.");
+
+        var list = await userListService.CreateListAsync(dto, parsedUserId);
         return CreatedAtAction(nameof(GetById), new { id = list.Id }, list);
     }
 
@@ -65,10 +74,16 @@ public class UserListController(IUserListService userListService) : ControllerBa
     /// <param name="dto">New list data</param>
     /// <param name="userId">ID of the user updating the list</param>
     /// <returns>The updated user list or NotFound</returns>
-    [HttpPut("{id:int}/users/{userId:int}")]
-    public async Task<ActionResult<UserListDto>> Update(int id, [FromBody] UpdateUserListDto dto, int userId)
+    [HttpPut("{id}/users/{userId}")]
+    public async Task<ActionResult<UserListDto>> Update(string id, [FromBody] UpdateUserListDto dto, string userId)
     {
-        var list = await userListService.UpdateListAsync(id, dto, userId);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid list ID format or value too large.");
+
+        if (!int.TryParse(userId, out var parsedUserId))
+            return BadRequest("Invalid user ID format or value too large.");
+
+        var list = await userListService.UpdateListAsync(parsedId, dto, parsedUserId);
         if (list is null) return NotFound();
         return Ok(list);
     }
@@ -79,10 +94,16 @@ public class UserListController(IUserListService userListService) : ControllerBa
     /// <param name="id">ID of the list to delete</param>
     /// <param name="userId">ID of the user who owns the list</param>
     /// <returns>No content on success</returns>
-    [HttpDelete("{id:int}/users/{userId:int}")]
-    public async Task<ActionResult> Delete(int id, int userId)
+    [HttpDelete("{id}/users/{userId}")]
+    public async Task<ActionResult> Delete(string id, string userId)
     {
-        var success = await userListService.DeleteListAsync(id, userId);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid list ID format or value too large.");
+
+        if (!int.TryParse(userId, out var parsedUserId))
+            return BadRequest("Invalid user ID format or value too large.");
+
+        var success = await userListService.DeleteListAsync(parsedId, parsedUserId);
         if (!success) return NotFound();
         return NoContent();
     }
@@ -94,10 +115,19 @@ public class UserListController(IUserListService userListService) : ControllerBa
     /// <param name="beanId">ID of the bean to add</param>
     /// <param name="userId">ID of the user who owns the list</param>
     /// <returns>No content on success</returns>
-    [HttpPost("{listId:int}/beans/{beanId:int}/users/{userId:int}")]
-    public async Task<ActionResult> AddBeanToList(int listId, int beanId, int userId)
+    [HttpPost("{listId}/beans/{beanId}/users/{userId}")]
+    public async Task<ActionResult> AddBeanToList(string listId, string beanId, string userId)
     {
-        var success = await userListService.AddBeanToListAsync(listId, beanId, userId);
+        if (!int.TryParse(listId, out var parsedListId))
+            return BadRequest("Invalid list ID format or value too large.");
+
+        if (!int.TryParse(beanId, out var parsedBeanId))
+            return BadRequest("Invalid bean ID format or value too large.");
+
+        if (!int.TryParse(userId, out var parsedUserId))
+            return BadRequest("Invalid user ID format or value too large.");
+
+        var success = await userListService.AddBeanToListAsync(parsedListId, parsedBeanId, parsedUserId);
         if (!success) return BadRequest();
         return NoContent();
     }
@@ -109,10 +139,19 @@ public class UserListController(IUserListService userListService) : ControllerBa
     /// <param name="beanId">ID of the bean to remove</param>
     /// <param name="userId">ID of the user who owns the list</param>
     /// <returns>No content on success</returns>
-    [HttpDelete("{listId:int}/beans/{beanId:int}/users/{userId:int}")]
-    public async Task<ActionResult> RemoveBeanFromList(int listId, int beanId, int userId)
+    [HttpDelete("{listId}/beans/{beanId}/users/{userId}")]
+    public async Task<ActionResult> RemoveBeanFromList(string listId, string beanId, string userId)
     {
-        var success = await userListService.RemoveBeanFromListAsync(listId, beanId, userId);
+        if (!int.TryParse(listId, out var parsedListId))
+            return BadRequest("Invalid list ID format or value too large.");
+
+        if (!int.TryParse(beanId, out var parsedBeanId))
+            return BadRequest("Invalid bean ID format or value too large.");
+
+        if (!int.TryParse(userId, out var parsedUserId))
+            return BadRequest("Invalid user ID format or value too large.");
+
+        var success = await userListService.RemoveBeanFromListAsync(parsedListId, parsedBeanId, parsedUserId);
         if (!success) return NotFound();
         return NoContent();
     }

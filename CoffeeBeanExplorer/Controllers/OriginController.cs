@@ -26,10 +26,13 @@ public class OriginController(IMediator mediator) : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the origin to retrieve</param>
     /// <returns>The requested origin or NotFound</returns>
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<OriginDto>> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<OriginDto>> GetById(string id)
     {
-        var origin = await mediator.Send(new GetOriginByIdQuery(id));
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var origin = await mediator.Send(new GetOriginByIdQuery(parsedId));
         if (origin is null) return NotFound();
         return Ok(origin);
     }
@@ -40,7 +43,7 @@ public class OriginController(IMediator mediator) : ControllerBase
     /// <param name="createDto">The origin data to create</param>
     /// <returns>The created origin with its new ID</returns>
     [HttpPost]
-    public async Task<ActionResult<OriginDto>> Create(CreateOriginDto createDto)
+    public async Task<ActionResult<OriginDto>> Create([FromBody] CreateOriginDto createDto)
     {
         var origin = await mediator.Send(new CreateOriginCommand(createDto));
         return CreatedAtAction(nameof(GetById), new { id = origin.Id }, origin);
@@ -52,10 +55,13 @@ public class OriginController(IMediator mediator) : ControllerBase
     /// <param name="id">ID of the origin to update</param>
     /// <param name="updateDto">New origin data</param>
     /// <returns>No content on success</returns>
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, UpdateOriginDto updateDto)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(string id, UpdateOriginDto updateDto)
     {
-        var success = await mediator.Send(new UpdateOriginCommand(id, updateDto));
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var success = await mediator.Send(new UpdateOriginCommand(parsedId, updateDto));
         if (!success) return NotFound();
         return NoContent();
     }
@@ -65,10 +71,13 @@ public class OriginController(IMediator mediator) : ControllerBase
     /// </summary>
     /// <param name="id">ID of the origin to delete</param>
     /// <returns>No content on success</returns>
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
     {
-        var success = await mediator.Send(new DeleteOriginCommand(id));
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var success = await mediator.Send(new DeleteOriginCommand(parsedId));
         if (!success) return NotFound();
         return NoContent();
     }

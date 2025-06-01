@@ -22,13 +22,17 @@ public class BeanController(IBeanService beanService) : ControllerBase
     /// <summary>
     ///     Get a bean by its ID.
     /// </summary>
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<BeanDto>> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<BeanDto>> GetById(string id)
     {
-        var bean = await beanService.GetBeanByIdAsync(id);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var bean = await beanService.GetBeanByIdAsync(parsedId);
         if (bean is null) return NotFound();
         return Ok(bean);
     }
+
 
     /// <summary>
     ///     Create a new coffee bean.
@@ -43,10 +47,13 @@ public class BeanController(IBeanService beanService) : ControllerBase
     /// <summary>
     ///     Update an existing bean.
     /// </summary>
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, UpdateBeanDto dto)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(string id, UpdateBeanDto dto)
     {
-        var success = await beanService.UpdateBeanAsync(id, dto);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var success = await beanService.UpdateBeanAsync(parsedId, dto);
         if (!success) return NotFound();
         return NoContent();
     }
@@ -54,10 +61,13 @@ public class BeanController(IBeanService beanService) : ControllerBase
     /// <summary>
     ///     Delete a bean by its ID.
     /// </summary>
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
     {
-        var success = await beanService.DeleteBeanAsync(id);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var success = await beanService.DeleteBeanAsync(parsedId);
         if (!success) return NotFound();
         return NoContent();
     }

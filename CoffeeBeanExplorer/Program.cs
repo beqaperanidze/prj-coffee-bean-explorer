@@ -5,6 +5,7 @@ using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Mapping;
 using CoffeeBeanExplorer.Application.Services.Implementations;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using CoffeeBeanExplorer.Application.Validators;
 using CoffeeBeanExplorer.Configuration;
 using CoffeeBeanExplorer.Domain.Repositories;
 using CoffeeBeanExplorer.Infrastructure.Data;
@@ -14,11 +15,30 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateOriginDtoValidator>();
+builder.Services.AddScoped<IValidator<CreateOriginDto>, CreateOriginDtoValidator>();
+builder.Services.AddScoped<IValidator<UpdateOriginDto>, UpdateOriginDtoValidator>();
+builder.Services.AddScoped<IValidator<CreateBeanDto>, CreateBeanDtoValidator>();
+builder.Services.AddScoped<IValidator<UpdateBeanDto>, UpdateBeanDtoValidator>();
+builder.Services.AddScoped<IValidator<CreateBeanTagDto>, CreateBeanTagDtoValidator>();
+builder.Services.AddScoped<IValidator<CreateListItemDto>, CreateListItemDtoValidator>();
+builder.Services.AddScoped<IValidator<CreateReviewDto>, CreateReviewDtoValidator>();
+builder.Services.AddScoped<IValidator<UpdateReviewDto>, UpdateReviewDtoValidator>();
+builder.Services.AddScoped<IValidator<CreateTagDto>, CreateTagDtoValidator>();
+builder.Services.AddScoped<IValidator<UpdateTagDto>, UpdateTagDtoValidator>();
+builder.Services.AddScoped<IValidator<UserRegistrationDto>, UserRegistrationDtoValidator>();
+builder.Services.AddScoped<IValidator<UserUpdateDto>, UserUpdateDtoValidator>();
+builder.Services.AddScoped<IValidator<CreateUserListDto>, CreateUserListDtoValidator>();
+builder.Services.AddScoped<IValidator<UpdateUserListDto>, UpdateUserListDtoValidator>();
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddVersionedApiExplorer(options =>

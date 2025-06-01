@@ -25,10 +25,13 @@ public class TagController(ITagService tagService) : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the tag to retrieve</param>
     /// <returns>The requested tag or NotFound</returns>
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<TagDto>> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<TagDto>> GetById(string id)
     {
-        var tag = await tagService.GetTagByIdAsync(id);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var tag = await tagService.GetTagByIdAsync(parsedId);
         if (tag is null) return NotFound();
         return Ok(tag);
     }
@@ -38,10 +41,13 @@ public class TagController(ITagService tagService) : ControllerBase
     /// </summary>
     /// <param name="beanId">ID of the bean to get tags for</param>
     /// <returns>List of tags for the specified bean</returns>
-    [HttpGet("beans/{beanId:int}")]
-    public async Task<ActionResult<IEnumerable<TagDto>>> GetByBeanId(int beanId)
+    [HttpGet("beans/{beanId}")]
+    public async Task<ActionResult<IEnumerable<TagDto>>> GetByBeanId(string beanId)
     {
-        var tags = await tagService.GetTagsByBeanIdAsync(beanId);
+        if (!int.TryParse(beanId, out var parsedBeanId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var tags = await tagService.GetTagsByBeanIdAsync(parsedBeanId);
         return Ok(tags);
     }
 
@@ -62,10 +68,13 @@ public class TagController(ITagService tagService) : ControllerBase
     /// </summary>
     /// <param name="tagId">ID of the tag to filter beans by</param>
     /// <returns>List of beans that have the specified tag</returns>
-    [HttpGet("{tagId:int}/beans")]
-    public async Task<ActionResult<IEnumerable<BeanDto>>> GetBeansByTagId(int tagId)
+    [HttpGet("{tagId}/beans")]
+    public async Task<ActionResult<IEnumerable<BeanDto>>> GetBeansByTagId(string tagId)
     {
-        var beans = await tagService.GetBeansByTagIdAsync(tagId);
+        if (!int.TryParse(tagId, out var parsedTagId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var beans = await tagService.GetBeansByTagIdAsync(parsedTagId);
         return Ok(beans);
     }
 
@@ -75,10 +84,13 @@ public class TagController(ITagService tagService) : ControllerBase
     /// <param name="id">ID of the tag to update</param>
     /// <param name="dto">New tag data</param>
     /// <returns>No content on success</returns>
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, UpdateTagDto dto)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(string id, UpdateTagDto dto)
     {
-        var success = await tagService.UpdateTagAsync(id, dto);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var success = await tagService.UpdateTagAsync(parsedId, dto);
         if (!success) return NotFound();
         return NoContent();
     }
@@ -88,10 +100,13 @@ public class TagController(ITagService tagService) : ControllerBase
     /// </summary>
     /// <param name="id">ID of the tag to delete</param>
     /// <returns>No content on success</returns>
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
     {
-        var success = await tagService.DeleteTagAsync(id);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var success = await tagService.DeleteTagAsync(parsedId);
         if (!success) return NotFound();
         return NoContent();
     }
@@ -102,10 +117,16 @@ public class TagController(ITagService tagService) : ControllerBase
     /// <param name="tagId">ID of the tag to associate</param>
     /// <param name="beanId">ID of the bean to tag</param>
     /// <returns>No content on success</returns>
-    [HttpPost("{tagId:int}/beans/{beanId:int}")]
-    public async Task<IActionResult> AddTagToBean(int tagId, int beanId)
+    [HttpPost("{tagId}/beans/{beanId}")]
+    public async Task<IActionResult> AddTagToBean(string tagId, string beanId)
     {
-        var success = await tagService.AddTagToBeanAsync(tagId, beanId);
+        if (!int.TryParse(tagId, out var parsedTagId))
+            return BadRequest("Invalid tag ID format or value too large.");
+
+        if (!int.TryParse(beanId, out var parsedBeanId))
+            return BadRequest("Invalid bean ID format or value too large.");
+
+        var success = await tagService.AddTagToBeanAsync(parsedTagId, parsedBeanId);
         if (!success) return BadRequest();
         return NoContent();
     }
@@ -116,10 +137,16 @@ public class TagController(ITagService tagService) : ControllerBase
     /// <param name="tagId">ID of the tag to remove</param>
     /// <param name="beanId">ID of the bean to remove tag from</param>
     /// <returns>No content on success</returns>
-    [HttpDelete("{tagId:int}/beans/{beanId:int}")]
-    public async Task<IActionResult> RemoveTagFromBean(int tagId, int beanId)
+    [HttpDelete("{tagId}/beans/{beanId}")]
+    public async Task<IActionResult> RemoveTagFromBean(string tagId, string beanId)
     {
-        var success = await tagService.RemoveTagFromBeanAsync(tagId, beanId);
+        if (!int.TryParse(tagId, out var parsedTagId))
+            return BadRequest("Invalid tag ID format or value too large.");
+
+        if (!int.TryParse(beanId, out var parsedBeanId))
+            return BadRequest("Invalid bean ID format or value too large.");
+
+        var success = await tagService.RemoveTagFromBeanAsync(parsedTagId, parsedBeanId);
         if (!success) return NotFound();
         return NoContent();
     }

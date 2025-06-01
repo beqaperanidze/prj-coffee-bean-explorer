@@ -70,7 +70,7 @@ CREATE TABLE "Auth"."Users"
     "FirstName"    VARCHAR(100),
     "LastName"     VARCHAR(100),
     "Role"         "UserRole"   NOT NULL
-        CONSTRAINT "DF_Users_Role"      DEFAULT 'User',
+        CONSTRAINT "DF_Users_Role" DEFAULT 'User',
     "CreatedAt"    TIMESTAMP    NOT NULL
         CONSTRAINT "DF_Users_CreatedAt" DEFAULT now(),
     "UpdatedAt"    TIMESTAMP    NOT NULL

@@ -69,25 +69,14 @@ public class ReviewService(IReviewRepository repository, IMapper mapper) : IRevi
 
     public async Task<IEnumerable<ReviewDto>> GetReviewsAsync(int? beanId, int? userId)
     {
-        IEnumerable<Review> reviews;
-
-        if (beanId.HasValue && userId.HasValue)
+        var reviews = (beanId, userId) switch
         {
-            var allReviews = await repository.GetAllAsync();
-            reviews = allReviews.Where(r => r.BeanId == beanId.Value && r.UserId == userId.Value);
-        }
-        else if (beanId.HasValue)
-        {
-            reviews = await repository.GetByBeanIdAsync(beanId.Value);
-        }
-        else if (userId.HasValue)
-        {
-            reviews = await repository.GetByUserIdAsync(userId.Value);
-        }
-        else
-        {
-            reviews = await repository.GetAllAsync();
-        }
+            ({ } bid, { } uid) => (await repository.GetAllAsync())
+                .Where(r => r.BeanId == bid && r.UserId == uid),
+            ({ } bid, null) => await repository.GetByBeanIdAsync(bid),
+            (null, { } uid) => await repository.GetByUserIdAsync(uid),
+            (null, null) => await repository.GetAllAsync()
+        };
 
         return mapper.Map<IEnumerable<ReviewDto>>(reviews);
     }

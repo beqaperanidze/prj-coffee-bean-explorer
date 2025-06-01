@@ -25,10 +25,13 @@ public class UserController(IUserService userService) : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the user to retrieve</param>
     /// <returns>The requested user or NotFound</returns>
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<UserDto>> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<UserDto>> GetById(string id)
     {
-        var user = await userService.GetUserByIdAsync(id);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var user = await userService.GetUserByIdAsync(parsedId);
         if (user == null) return NotFound();
         return Ok(user);
     }
@@ -58,12 +61,15 @@ public class UserController(IUserService userService) : ControllerBase
     /// <param name="id">ID of the user to update</param>
     /// <param name="userUpdateDto">New user data</param>
     /// <returns>The updated user data</returns>
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult<UserDto>> Update(int id, UserUpdateDto userUpdateDto)
+    [HttpPut("{id}")]
+    public async Task<ActionResult<UserDto>> Update(string id, UserUpdateDto userUpdateDto)
     {
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
         try
         {
-            var user = await userService.UpdateUserAsync(id, userUpdateDto);
+            var user = await userService.UpdateUserAsync(parsedId, userUpdateDto);
             if (user == null) return NotFound();
             return Ok(user);
         }
@@ -78,10 +84,13 @@ public class UserController(IUserService userService) : ControllerBase
     /// </summary>
     /// <param name="id">ID of the user to delete</param>
     /// <returns>No content on success</returns>
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
     {
-        var success = await userService.DeleteUserAsync(id);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var success = await userService.DeleteUserAsync(parsedId);
         if (!success) return NotFound();
         return NoContent();
     }
