@@ -1,8 +1,11 @@
-using CoffeeBeanExplorer.Application.Origins.Queries;
+using CoffeeBeanExplorer.Application.Common.Attributes;
 using CoffeeBeanExplorer.Domain.Repositories;
 using MediatR;
 
-namespace CoffeeBeanExplorer.Application.Origins.Handlers;
+namespace CoffeeBeanExplorer.Application.Origins.Commands;
+
+[TrackMetrics(MetricType.Delete)]
+public record DeleteOriginCommand(int Id) : IRequest<bool>;
 
 public class DeleteOriginCommandHandler(IOriginRepository repository) : IRequestHandler<DeleteOriginCommand, bool>
 {
