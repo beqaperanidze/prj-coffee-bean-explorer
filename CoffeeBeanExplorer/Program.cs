@@ -1,8 +1,11 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using CoffeeBeanExplorer.Application.Common.Behaviors;
+using CoffeeBeanExplorer.Application.Common.Services;
 using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Mapping;
+using CoffeeBeanExplorer.Application.Origins.Queries;
 using CoffeeBeanExplorer.Application.Services.Implementations;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Application.Validators;
@@ -17,6 +20,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using MediatR;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +64,23 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(xmlPath);
 });
 
+var logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
+if (!Directory.Exists(logDirectory))
+{
+    Directory.CreateDirectory(logDirectory);
+}
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .WriteTo.Console()
+        .WriteTo.File("D:/RiderProjects/CoffeeBeanExplorer/CoffeeBeanExplorer/bin/Debug/net9.0/logs/app.log",
+            rollingInterval: RollingInterval.Day)
+        .MinimumLevel
+        .Override("CoffeeBeanExplorer.Application.Common.Behaviors",
+            Serilog.Events.LogEventLevel.Debug));
+
+Log.Logger.Information("Application starting - testing log file creation");
 builder.Services.AddApiVersioning(options =>
 {
     options.AssumeDefaultVersionWhenUnspecified = true;
@@ -66,8 +88,15 @@ builder.Services.AddApiVersioning(options =>
     options.ReportApiVersions = true;
     options.ApiVersionReader = new UrlSegmentApiVersionReader();
 });
+builder.Services.AddTransient<AttributeReaderService>();
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(OriginDto).Assembly));
+{
+    cfg.RegisterServicesFromAssembly(typeof(LoggingBehavior<,>).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(CreateOriginCommand).Assembly);
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+});
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 builder.Services.AddGrpc();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.Configure<RateLimitSettings>(
@@ -111,7 +140,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRateLimiter();
-
+app.Use(async (context, next) =>
+{
+    Log.Information("Request received: {Path}", context.Request.Path);
+    await next();
+    Log.Information("Request completed: {Path}", context.Request.Path);
+});
 app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<CoffeeGrpcService>();
