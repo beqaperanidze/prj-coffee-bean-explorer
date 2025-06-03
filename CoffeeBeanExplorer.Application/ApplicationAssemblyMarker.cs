@@ -1,5 +1,3 @@
 namespace CoffeeBeanExplorer.Application;
 
-public class ApplicationAssemblyMarker
-{
-}
+public class ApplicationAssemblyMarker;

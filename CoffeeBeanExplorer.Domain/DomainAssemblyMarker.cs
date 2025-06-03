@@ -1,5 +1,3 @@
 namespace CoffeeBeanExplorer.Domain;
 
-public class DomainAssemblyMarker
-{
-}
+public class DomainAssemblyMarker;

@@ -4,7 +4,6 @@ using System.Threading.RateLimiting;
 using CoffeeBeanExplorer.Application;
 using CoffeeBeanExplorer.Application.Common.Behaviors;
 using CoffeeBeanExplorer.Application.Common.Services;
-using CoffeeBeanExplorer.Application.Mapping;
 using CoffeeBeanExplorer.Application.Services.Implementations;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Configuration;
@@ -20,7 +19,6 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,49 +36,54 @@ builder.Services.AddVersionedApiExplorer(options =>
     options.SubstituteApiVersionInUrl = true;
 });
 
-builder.Services.AddSwaggerGen(options =>
+if (builder.Configuration.GetValue("Swagger:Enabled", true))
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
+    builder.Services.AddSwaggerGen(options =>
     {
-        Title = "Coffee Bean Explorer API",
-        Version = "v1"
+        options.SwaggerDoc(
+            builder.Configuration["Swagger:Version"] ?? "v1",
+            new OpenApiInfo
+            {
+                Title = builder.Configuration["Swagger:Title"] ?? "Coffee Bean Explorer API",
+                Version = builder.Configuration["Swagger:Version"] ?? "v1"
+            });
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        options.IncludeXmlComments(xmlPath);
     });
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    options.IncludeXmlComments(xmlPath);
-});
+}
 
 var logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
 if (!Directory.Exists(logDirectory)) Directory.CreateDirectory(logDirectory);
 
 builder.Host.UseSerilog((context, configuration) =>
-    configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-        .WriteTo.Seq("http://localhost:5342", apiKey: null,
-            restrictedToMinimumLevel: LogEventLevel.Information)
-        .WriteTo.File(
-            Path.Combine(AppContext.BaseDirectory, "logs", "app.log"),
-            rollingInterval: RollingInterval.Day,
-            outputTemplate:
-            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Properties:j}{NewLine}{Exception}")
-        .Enrich.WithProperty("ApplicationName", "CoffeeBeanExplorer")
-        .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
-        .Enrich.FromLogContext()
-        .Enrich.WithMachineName()
-        .Enrich.WithThreadId()
-        .Enrich.WithCorrelationId()
-        .MinimumLevel.Information()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-        .MinimumLevel.Override("CoffeeBeanExplorer.Application.Common.Behaviors", LogEventLevel.Debug));
+    configuration.ReadFrom.Configuration(context.Configuration));
+
 Log.Logger.Information("Application starting - testing log file creation");
+
+var apiVersionSection = builder.Configuration.GetSection("ApiVersioning");
 builder.Services.AddApiVersioning(options =>
 {
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.DefaultApiVersion = new ApiVersion(1, 0);
-    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified =
+        apiVersionSection.GetValue<bool>("AssumeDefaultVersionWhenUnspecified");
+
+    var versionStr = apiVersionSection["DefaultApiVersion"] ?? "1.0";
+    var versionParts = versionStr.Split('.');
+    if (versionParts.Length == 2 &&
+        int.TryParse(versionParts[0], out var major) &&
+        int.TryParse(versionParts[1], out var minor))
+    {
+        options.DefaultApiVersion = new ApiVersion(major, minor);
+    }
+    else
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+    }
+
+    options.ReportApiVersions = apiVersionSection.GetValue<bool>("ReportApiVersions");
     options.ApiVersionReader = new UrlSegmentApiVersionReader();
 });
+
 builder.Services.AddTransient<AttributeReaderService>();
 builder.Services.AddMediatR(cfg =>
 {
@@ -90,29 +93,24 @@ builder.Services.AddMediatR(cfg =>
 });
 
 builder.Services.AddGrpc();
-builder.Services.AddAutoMapper(
-    typeof(UserProfile),
-    typeof(BeanProfile),
-    typeof(OriginProfile),
-    typeof(ReviewProfile),
-    typeof(TagProfile),
-    typeof(UserListProfile)
-);
+builder.Services.AddAutoMapper(typeof(ApplicationAssemblyMarker).Assembly);
+
 builder.Services.Configure<RateLimitSettings>(
     builder.Configuration.GetSection("RateLimit"));
 
 builder.Services.AddRateLimiter(options =>
 {
-    var rateLimitSettings = builder.Configuration.GetSection("RateLimit").Get<RateLimitSettings>();
+    var rateLimitSection = builder.Configuration.GetSection("RateLimit");
 
     options.AddFixedWindowLimiter("global", config =>
     {
-        config.PermitLimit = rateLimitSettings?.PermitLimit ?? 100;
-        config.Window = TimeSpan.FromMinutes(rateLimitSettings?.WindowMinutes ?? 1);
+        config.PermitLimit = rateLimitSection.GetValue("PermitLimit", 100);
+        config.Window = TimeSpan.FromMinutes(rateLimitSection.GetValue("WindowMinutes", 1));
         config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        config.QueueLimit = rateLimitSettings?.QueueLimit ?? 10;
+        config.QueueLimit = rateLimitSection.GetValue("QueueLimit", 10);
     });
 });
+
 builder.Services.AddScoped<DbConnectionFactory>();
 
 builder.Services.AddScoped<IBeanRepository, BeanRepository>();
@@ -121,6 +119,7 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserListRepository, UserListRepository>();
+
 builder.Services.AddScoped<IBeanService, BeanService>();
 builder.Services.AddScoped<IOriginService, OriginService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
@@ -130,10 +129,15 @@ builder.Services.AddScoped<IUserListService, UserListService>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() && builder.Configuration.GetValue("Swagger:Enabled", true))
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Coffee Bean Explorer API v1"); });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint(
+            $"/swagger/{builder.Configuration["Swagger:Version"] ?? "v1"}/swagger.json",
+            $"{builder.Configuration["Swagger:Title"] ?? "Coffee Bean Explorer API"} {builder.Configuration["Swagger:Version"] ?? "v1"}");
+    });
 }
 
 app.UseHttpsRedirection();
@@ -150,6 +154,7 @@ app.UseSerilogRequestLogging(options =>
         diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent);
     };
 });
+
 app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<CoffeeGrpcService>();

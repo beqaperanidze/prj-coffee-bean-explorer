@@ -43,14 +43,12 @@ public class LoggingBehavior<TRequest, TResponse>(
                 {
                     stopwatch.Stop();
                     var elapsed = stopwatch.ElapsedMilliseconds;
-                    var perfCategory = elapsed < 50 ? "Fast" : elapsed < 200 ? "Normal" : "Slow";
 
                     using (LogContext.PushProperty("ElapsedMs", elapsed))
-                    using (LogContext.PushProperty("PerformanceCategory", perfCategory))
                     {
                         logger.LogInformation(
-                            "[{CorrelationId}] Handled {RequestType} in {ElapsedMilliseconds}ms ({PerformanceCategory})",
-                            correlationId, requestName, elapsed, perfCategory);
+                            "[{CorrelationId}] Handled {RequestType} in {ElapsedMilliseconds}ms",
+                            correlationId, requestName, elapsed);
                     }
                 }
                 else

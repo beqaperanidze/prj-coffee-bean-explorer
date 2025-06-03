@@ -1,5 +1,3 @@
 namespace CoffeeBeanExplorer.Infrastructure;
 
-public class InfrastructureAssemblyMarker
-{
-}
+public class InfrastructureAssemblyMarker;
