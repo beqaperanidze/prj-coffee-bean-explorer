@@ -1,6 +1,5 @@
 ﻿using CoffeeBeanExplorer.Domain.Models;
 
-
 namespace CoffeeBeanExplorer.Domain.Repositories;
 
 public interface IReviewRepository

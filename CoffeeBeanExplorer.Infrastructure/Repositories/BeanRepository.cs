@@ -36,14 +36,12 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
                 }
 
                 if (tag != null && tag.Id != 0)
-                {
                     existingBean.BeanTags.Add(new BeanTag
                     {
                         BeanId = bean.Id,
                         TagId = tag.Id,
                         Tag = tag
                     });
-                }
 
                 return existingBean;
             },
@@ -82,14 +80,12 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
                 }
 
                 if (tag != null && tag.Id != 0)
-                {
                     result.BeanTags.Add(new BeanTag
                     {
                         BeanId = bean.Id,
                         TagId = tag.Id,
                         Tag = tag
                     });
-                }
 
                 return result;
             },

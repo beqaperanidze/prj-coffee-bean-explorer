@@ -1,6 +1,5 @@
 ﻿using CoffeeBeanExplorer.Application.DTOs;
 
-
 namespace CoffeeBeanExplorer.Application.Services.Interfaces;
 
 public interface IBeanService

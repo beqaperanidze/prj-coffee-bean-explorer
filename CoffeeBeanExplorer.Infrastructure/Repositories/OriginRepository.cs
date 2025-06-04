@@ -67,10 +67,7 @@ public class OriginRepository(DbConnectionFactory dbContext) : IOriginRepository
             "SELECT COUNT(*) FROM \"Product\".\"Beans\" WHERE \"OriginId\" = @Id",
             new { Id = id });
 
-        if (beansUsingOrigin > 0)
-        {
-            return false;
-        }
+        if (beansUsingOrigin > 0) return false;
 
         var rowsAffected = await connection.ExecuteAsync(
             "DELETE FROM \"Product\".\"Origins\" WHERE \"Id\" = @Id",

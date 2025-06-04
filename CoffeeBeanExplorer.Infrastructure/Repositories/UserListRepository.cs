@@ -52,10 +52,7 @@ public class UserListRepository(DbConnectionFactory dbContext) : IUserListReposi
                 splitOn: "Id,Id"
             );
 
-            foreach (var item in items)
-            {
-                userList.Items.Add(item);
-            }
+            foreach (var item in items) userList.Items.Add(item);
         }
 
         return userListDictionary.Values;
@@ -104,10 +101,7 @@ public class UserListRepository(DbConnectionFactory dbContext) : IUserListReposi
             splitOn: "Id,Id"
         );
 
-        foreach (var item in items)
-        {
-            userList.Items.Add(item);
-        }
+        foreach (var item in items) userList.Items.Add(item);
 
         return userList;
     }
@@ -125,10 +119,7 @@ public class UserListRepository(DbConnectionFactory dbContext) : IUserListReposi
             """,
             new { UserId = userId });
 
-        foreach (var userList in userLists)
-        {
-            userListDictionary[userList.Id] = userList;
-        }
+        foreach (var userList in userLists) userListDictionary[userList.Id] = userList;
 
         var user = await connection.QuerySingleOrDefaultAsync<User>(
             """
@@ -163,10 +154,7 @@ public class UserListRepository(DbConnectionFactory dbContext) : IUserListReposi
                 splitOn: "Id,Id"
             );
 
-            foreach (var item in items)
-            {
-                userList.Items.Add(item);
-            }
+            foreach (var item in items) userList.Items.Add(item);
         }
 
         return userListDictionary.Values;
@@ -242,10 +230,7 @@ public class UserListRepository(DbConnectionFactory dbContext) : IUserListReposi
             """,
             new { ListId = listId, BeanId = beanId });
 
-        if (exists)
-        {
-            return false;
-        }
+        if (exists) return false;
 
         var rowsAffected = await connection.ExecuteAsync(
             """

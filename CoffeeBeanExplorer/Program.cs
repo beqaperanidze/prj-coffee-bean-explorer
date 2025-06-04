@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using CoffeeBeanExplorer.Application.Services.Implementations;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Configuration;
@@ -6,20 +8,26 @@ using CoffeeBeanExplorer.Domain.Repositories;
 using CoffeeBeanExplorer.Infrastructure.Data;
 using CoffeeBeanExplorer.Infrastructure.Repositories;
 using CoffeeBeanExplorer.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
+    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddVersionedApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
 
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Coffee Bean Explorer API",
         Version = "v1"
@@ -32,8 +40,9 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddApiVersioning(options =>
 {
     options.AssumeDefaultVersionWhenUnspecified = true;
-    options.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+    options.DefaultApiVersion = new ApiVersion(1, 0);
     options.ReportApiVersions = true;
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
 });
 
 builder.Services.AddGrpc();
@@ -49,7 +58,7 @@ builder.Services.AddRateLimiter(options =>
     {
         config.PermitLimit = rateLimitSettings?.PermitLimit ?? 100;
         config.Window = TimeSpan.FromMinutes(rateLimitSettings?.WindowMinutes ?? 1);
-        config.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         config.QueueLimit = rateLimitSettings?.QueueLimit ?? 10;
     });
 });

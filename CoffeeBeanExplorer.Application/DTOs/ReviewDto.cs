@@ -6,13 +6,11 @@ public class ReviewDto
 {
     public int Id { get; set; }
     public int UserId { get; set; }
-    public string Username { get; set; } = string.Empty;
+    public required string Username { get; set; } 
     public int BeanId { get; set; }
-    public string BeanName { get; set; } = string.Empty;
+    public required string BeanName { get; set; }
     public int Rating { get; set; }
     public string? Comment { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
 }
 
 public class CreateReviewDto
