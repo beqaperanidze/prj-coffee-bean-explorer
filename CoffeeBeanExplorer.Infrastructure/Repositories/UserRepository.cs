@@ -12,7 +12,8 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
         using var connection = dbContext.GetConnection();
         return await connection.QueryAsync<User>(
             """
-            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", "UpdatedAt", "PasswordHash" 
+            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", 
+                   "UpdatedAt", "PasswordHash", "Salt", "LastLogin", "IsActive"
             FROM "Auth"."Users"
             """);
     }
@@ -20,69 +21,171 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
     public async Task<User?> GetByIdAsync(int id)
     {
         using var connection = dbContext.GetConnection();
-        return await connection.QueryFirstOrDefaultAsync<User>(
+        var user = await connection.QueryFirstOrDefaultAsync<User>(
             """
-            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", "UpdatedAt", "PasswordHash"
+            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", 
+                   "UpdatedAt", "PasswordHash", "Salt", "LastLogin", "IsActive"
             FROM "Auth"."Users"
             WHERE "Id" = @Id
             """,
             new { Id = id });
+
+        if (user != null)
+        {
+            user.RefreshTokens = (await connection.QueryAsync<RefreshToken>(
+                """
+                SELECT "Id", "Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId"
+                FROM "Auth"."RefreshTokens"
+                WHERE "UserId" = @UserId
+                """,
+                new { UserId = id })).ToList();
+        }
+
+        return user;
     }
 
     public async Task<User?> GetByUsernameAsync(string username)
     {
         using var connection = dbContext.GetConnection();
-        return await connection.QueryFirstOrDefaultAsync<User>(
+        var user = await connection.QueryFirstOrDefaultAsync<User>(
             """
-            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", "UpdatedAt", "PasswordHash"
+            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", 
+                   "UpdatedAt", "PasswordHash", "Salt", "LastLogin", "IsActive"
             FROM "Auth"."Users"
             WHERE "Username" = @Username
             """,
             new { Username = username });
+
+        if (user != null)
+        {
+            user.RefreshTokens = (await connection.QueryAsync<RefreshToken>(
+                """
+                SELECT "Id", "Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId"
+                FROM "Auth"."RefreshTokens"
+                WHERE "UserId" = @UserId
+                """,
+                new { UserId = user.Id })).ToList();
+        }
+
+        return user;
     }
 
     public async Task<User?> GetByEmailAsync(string email)
     {
         using var connection = dbContext.GetConnection();
-        return await connection.QueryFirstOrDefaultAsync<User>(
+        var user = await connection.QueryFirstOrDefaultAsync<User>(
             """
-            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", "UpdatedAt", "PasswordHash"
+            SELECT "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", 
+                   "UpdatedAt", "PasswordHash", "Salt", "LastLogin", "IsActive"
             FROM "Auth"."Users"
             WHERE LOWER("Email") = LOWER(@Email)
             """,
             new { Email = email });
+
+        if (user != null)
+        {
+            user.RefreshTokens = (await connection.QueryAsync<RefreshToken>(
+                """
+                SELECT "Id", "Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId"
+                FROM "Auth"."RefreshTokens"
+                WHERE "UserId" = @UserId
+                """,
+                new { UserId = user.Id })).ToList();
+        }
+
+        return user;
     }
 
     public async Task<User> AddAsync(User user)
     {
         using var connection = dbContext.GetConnection();
-        var insertedUser = await connection.QuerySingleAsync<User>(
+        var insertedUserId = await connection.QuerySingleAsync<int>(
             """
-            INSERT INTO "Auth"."Users" ("Username", "Email", "FirstName", "LastName", "PasswordHash")
-            VALUES (@Username, @Email, @FirstName, @LastName, @PasswordHash)
-            RETURNING "Id", "Username", "Email", "FirstName", "LastName", "Role", "CreatedAt", "UpdatedAt", "PasswordHash"
+            INSERT INTO "Auth"."Users" ("Username", "Email", "FirstName", "LastName", "PasswordHash", 
+                                        "Salt", "IsActive", "CreatedAt", "UpdatedAt")
+            VALUES (@Username, @Email, @FirstName, @LastName, @PasswordHash, 
+                    @Salt, @IsActive, now(), now())
+            RETURNING "Id"
             """,
             user);
 
-        return insertedUser;
+        user.Id = insertedUserId;
+
+        if (user.RefreshTokens.Count <= 0) return await GetByIdAsync(user.Id) ?? user;
+        foreach (var token in user.RefreshTokens)
+        {
+            token.UserId = user.Id;
+            await connection.ExecuteAsync(
+                """
+                INSERT INTO "Auth"."RefreshTokens" ("Token", "Expires", "Created", "UserId")
+                VALUES (@Token, @Expires, @Created, @UserId)
+                """,
+                token);
+        }
+
+        return await GetByIdAsync(user.Id) ?? user;
     }
 
     public async Task<bool> UpdateAsync(User user)
     {
         using var connection = dbContext.GetConnection();
-        var rowsAffected = await connection.ExecuteAsync(
-            """
-            UPDATE "Auth"."Users"
-            SET "Username" = @Username,
-                "Email" = @Email,
-                "FirstName" = @FirstName,
-                "LastName" = @LastName,
-                "UpdatedAt" = now()
-            WHERE "Id" = @Id
-            """,
-            user);
+        using var transaction = connection.BeginTransaction();
+        try
+        {
+            var rowsAffected = await connection.ExecuteAsync(
+                """
+                UPDATE "Auth"."Users"
+                SET "Username" = @Username,
+                    "Email" = @Email,
+                    "FirstName" = @FirstName,
+                    "LastName" = @LastName,
+                    "Salt" = @Salt,
+                    "LastLogin" = @LastLogin,
+                    "IsActive" = @IsActive,
+                    "UpdatedAt" = now()
+                WHERE "Id" = @Id
+                """,
+                user,
+                transaction);
 
-        return rowsAffected > 0;
+            if (user.RefreshTokens.Count != 0)
+            {
+                foreach (var token in user.RefreshTokens)
+                {
+                    if (token.Id == 0)
+                    {
+                        await connection.ExecuteAsync(
+                            """
+                            INSERT INTO "Auth"."RefreshTokens" ("Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId")
+                            VALUES (@Token, @Expires, @Created, @Revoked, @ReplacedByToken, @ReasonRevoked, @UserId)
+                            """,
+                            token,
+                            transaction);
+                    }
+                    else
+                    {
+                        await connection.ExecuteAsync(
+                            """
+                            UPDATE "Auth"."RefreshTokens"
+                            SET "Revoked" = @Revoked,
+                                "ReplacedByToken" = @ReplacedByToken,
+                                "ReasonRevoked" = @ReasonRevoked
+                            WHERE "Id" = @Id AND "UserId" = @UserId
+                            """,
+                            token,
+                            transaction);
+                    }
+                }
+            }
+
+            transaction.Commit();
+            return rowsAffected > 0;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -94,6 +197,7 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
         {
             await connection.ExecuteAsync(
                 """
+                DELETE FROM "Auth"."RefreshTokens" WHERE "UserId" = @Id;
                 DELETE FROM "Social"."UserLists" WHERE "UserId" = @Id;
                 DELETE FROM "Social"."Reviews" WHERE "UserId" = @Id;
                 DELETE FROM "Auth"."Users" WHERE "Id" = @Id;

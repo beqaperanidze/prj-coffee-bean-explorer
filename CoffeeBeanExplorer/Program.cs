@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using CoffeeBeanExplorer.Application;
@@ -14,9 +15,11 @@ using CoffeeBeanExplorer.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -47,6 +50,32 @@ if (builder.Configuration.GetValue("Swagger:Enabled", true))
                 Title = builder.Configuration["Swagger:Title"] ?? "Coffee Bean Explorer API",
                 Version = builder.Configuration["Swagger:Version"] ?? "v1"
             });
+
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description =
+                "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                []
+            }
+        });
+
         var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
         options.IncludeXmlComments(xmlPath);
@@ -111,6 +140,30 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ??
+                                       throw new InvalidOperationException("JWT key is not configured"))),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<DbConnectionFactory>();
 
 builder.Services.AddScoped<IBeanRepository, BeanRepository>();
@@ -126,6 +179,8 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserListService, UserListService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
@@ -155,6 +210,7 @@ app.UseSerilogRequestLogging(options =>
     };
 });
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<CoffeeGrpcService>();

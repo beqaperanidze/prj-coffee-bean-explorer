@@ -36,3 +36,11 @@ public class UserUpdateDto
 
     [MaxLength(100)] public string? LastName { get; set; }
 }
+
+
+
+public class UserLoginRequest
+{
+    [MaxLength(50)] public required string Username { get; set; } 
+    [Required] [MinLength(8)] public required string Password { get; set; }
+}

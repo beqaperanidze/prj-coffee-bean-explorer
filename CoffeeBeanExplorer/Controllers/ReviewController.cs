@@ -1,5 +1,7 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using System.Security.Claims;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeBeanExplorer.Controllers;
@@ -7,6 +9,7 @@ namespace CoffeeBeanExplorer.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/reviews")]
+[Authorize]
 public class ReviewController(IReviewService reviewService) : ControllerBase
 {
     /// <summary>
@@ -51,18 +54,18 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
     }
 
     /// <summary>
-    ///     Creates a new review
+    ///     Creates a new review for the authenticated user
     /// </summary>
     /// <param name="createDto">The review data to create</param>
-    /// <param name="userId">ID of the user creating the review</param>
     /// <returns>The created review with its new ID</returns>
-    [HttpPost("users/{userId}")]
-    public async Task<ActionResult<ReviewDto>> Create(CreateReviewDto createDto, string userId)
+    [HttpPost]
+    public async Task<ActionResult<ReviewDto>> Create(CreateReviewDto createDto)
     {
-        if (!int.TryParse(userId, out var parsedUserId))
-            return BadRequest("Invalid user ID format or value too large.");
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var currentParsedId))
+            return Unauthorized("User is not authenticated or has invalid ID.");
 
-        var (review, errorMessage) = await reviewService.CreateReviewAsync(createDto, parsedUserId);
+        var (review, errorMessage) = await reviewService.CreateReviewAsync(createDto, currentParsedId);
 
         if (errorMessage != null)
             return BadRequest(new { Message = errorMessage });
@@ -75,18 +78,28 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
     /// </summary>
     /// <param name="id">ID of the review to update</param>
     /// <param name="updateDto">New review data</param>
-    /// <param name="userId">ID of the user updating the review</param>
     /// <returns>No content on success</returns>
-    [HttpPut("{id}/users/{userId}")]
-    public async Task<IActionResult> Update(string id, UpdateReviewDto updateDto, string userId)
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<IActionResult> Update(string id, UpdateReviewDto updateDto)
     {
         if (!int.TryParse(id, out var parsedId))
             return BadRequest("Invalid review ID format or value too large.");
 
-        if (!int.TryParse(userId, out var parsedUserId))
-            return BadRequest("Invalid user ID format or value too large.");
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var currentParsedId))
+            return Unauthorized("User is not authenticated or has invalid ID.");
 
-        var success = await reviewService.UpdateReviewAsync(parsedId, updateDto, parsedUserId);
+        var isAdminOrBrewer = User.IsInRole("Admin") || User.IsInRole("Brewer");
+
+        var review = await reviewService.GetReviewByIdAsync(parsedId);
+        if (review == null)
+            return NotFound();
+
+        if (review.UserId != currentParsedId && !isAdminOrBrewer)
+            return Forbid("You can only update your own reviews.");
+
+        var success = await reviewService.UpdateReviewAsync(parsedId, updateDto, currentParsedId);
         if (!success) return NotFound();
         return NoContent();
     }
@@ -97,10 +110,24 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
     /// <param name="id">ID of the review to delete</param>
     /// <returns>No content on success</returns>
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete(string id)
     {
         if (!int.TryParse(id, out var parsedId))
             return BadRequest("Invalid ID format or value too large.");
+
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var currentParsedId))
+            return Unauthorized("User is not authenticated or has invalid ID.");
+
+        var isAdminOrBrewer = User.IsInRole("Admin") || User.IsInRole("Brewer");
+
+        var review = await reviewService.GetReviewByIdAsync(parsedId);
+        if (review == null)
+            return NotFound();
+
+        if (review.UserId != currentParsedId && !isAdminOrBrewer)
+            return Forbid("You can only delete your own reviews.");
 
         var success = await reviewService.DeleteReviewAsync(parsedId);
         if (!success) return NotFound();
