@@ -2,35 +2,35 @@
 
 namespace CoffeeBeanExplorer.Application.DTOs;
 
-public class BeanDto
+public record BeanDto
 {
-    public int Id { get; set; }
-    public required string Name { get; set; }
-    public int OriginId { get; set; }
-    public required string OriginCountry { get; set; }
-    public string? OriginRegion { get; set; }
-    public RoastLevel RoastLevel { get; set; }
-    public string? Description { get; set; }
-    public decimal Price { get; set; }
-    public List<TagDto>? Tags { get; set; }
+    public int Id { get; init; }
+    public required string Name { get; init; }
+    public int OriginId { get; init; }
+    public required string OriginCountry { get; init; }
+    public string? OriginRegion { get; init; }
+    public RoastLevel RoastLevel { get; init; }
+    public string? Description { get; init; }
+    public decimal Price { get; init; }
+    public List<TagDto>? Tags { get; init; }
 }
 
-public class CreateBeanDto
+public record CreateBeanDto
 {
-    public required string Name { get; set; }
-    public int OriginId { get; set; }
-    public RoastLevel RoastLevel { get; set; }
-    public string? Description { get; set; }
-    public decimal Price { get; set; }
-    public List<int>? TagIds { get; set; }
+    public required string Name { get; init; }
+    public required int OriginId { get; init; }
+    public required RoastLevel RoastLevel { get; init; }
+    public string? Description { get; init; }
+    public required decimal Price { get; init; }
+    public List<int>? TagIds { get; init; }
 }
 
-public class UpdateBeanDto
+public record UpdateBeanDto
 {
-    public required string Name { get; set; }
-    public int OriginId { get; set; }
-    public RoastLevel RoastLevel { get; set; }
-    public string? Description { get; set; }
-    public decimal Price { get; set; }
-    public List<int>? TagIds { get; set; }
+    public required string Name { get; init; }
+    public required int OriginId { get; init; }
+    public required RoastLevel RoastLevel { get; init; }
+    public string? Description { get; init; }
+    public required decimal Price { get; init; }
+    public List<int>? TagIds { get; init; }
 }

@@ -9,9 +9,3 @@ public class ListItemDto
     public string? OriginRegion { get; set; }
     public decimal Price { get; set; }
 }
-
-public class CreateListItemDto
-{
-    public int ListId { get; set; }
-    public int BeanId { get; set; }
-}

@@ -10,10 +10,10 @@ public class UserListDto
 
 public class CreateUserListDto
 {
-    public required string Name { get; set; } 
+    public required string Name { get; set; }
 }
 
 public class UpdateUserListDto
 {
-    public required string Name { get; set; } 
+    public required string Name { get; set; }
 }

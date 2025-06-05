@@ -1,28 +1,29 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using AutoMapper;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
-public class TagService(ITagRepository repository) : ITagService
+public class TagService(ITagRepository repository, IMapper mapper) : ITagService
 {
     public async Task<IEnumerable<TagDto>> GetAllTagsAsync()
     {
         var tags = await repository.GetAllAsync();
-        return tags.Select(MapToDto);
+        return mapper.Map<IEnumerable<TagDto>>(tags);
     }
 
     public async Task<TagDto?> GetTagByIdAsync(int id)
     {
         var tag = await repository.GetByIdAsync(id);
-        return tag != null ? MapToDto(tag) : null;
+        return tag != null ? mapper.Map<TagDto>(tag) : null;
     }
 
     public async Task<IEnumerable<TagDto>> GetTagsByBeanIdAsync(int beanId)
     {
         var tags = await repository.GetByBeanIdAsync(beanId);
-        return tags.Select(MapToDto);
+        return mapper.Map<IEnumerable<TagDto>>(tags);
     }
 
     public async Task<TagDto> CreateTagAsync(CreateTagDto dto)
@@ -33,7 +34,7 @@ public class TagService(ITagRepository repository) : ITagService
         };
 
         var addedTag = await repository.AddAsync(tag);
-        return MapToDto(addedTag);
+        return mapper.Map<TagDto>(addedTag);
     }
 
     public async Task<bool> UpdateTagAsync(int id, UpdateTagDto dto)
@@ -64,35 +65,6 @@ public class TagService(ITagRepository repository) : ITagService
     public async Task<IEnumerable<BeanDto>> GetBeansByTagIdAsync(int tagId)
     {
         var beans = await repository.GetBeansByTagIdAsync(tagId);
-        return beans.Select(MapBeanToDto);
-    }
-
-    private static BeanDto MapBeanToDto(Bean bean)
-    {
-        return new BeanDto
-        {
-            Id = bean.Id,
-            Name = bean.Name,
-            OriginId = bean.OriginId,
-            OriginCountry = bean.Origin?.Country ?? string.Empty,
-            OriginRegion = bean.Origin?.Region,
-            RoastLevel = bean.RoastLevel,
-            Description = bean.Description,
-            Price = bean.Price,
-            Tags = bean.BeanTags?.Select(bt => new TagDto
-            {
-                Id = bt.Tag!.Id,
-                Name = bt.Tag.Name
-            }).ToList() ?? []
-        };
-    }
-
-    private static TagDto MapToDto(Tag tag)
-    {
-        return new TagDto
-        {
-            Id = tag.Id,
-            Name = tag.Name
-        };
+        return mapper.Map<IEnumerable<BeanDto>>(beans);
     }
 }

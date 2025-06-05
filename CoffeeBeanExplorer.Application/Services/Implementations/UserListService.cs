@@ -1,29 +1,30 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using AutoMapper;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
-public class UserListService(IUserListRepository repository, IBeanRepository beanRepository)
+public class UserListService(IUserListRepository repository, IBeanRepository beanRepository, IMapper mapper)
     : IUserListService
 {
     public async Task<IEnumerable<UserListDto>> GetAllListsAsync()
     {
         var lists = await repository.GetAllAsync();
-        return lists.Select(MapToDto);
+        return mapper.Map<IEnumerable<UserListDto>>(lists);
     }
 
     public async Task<UserListDto?> GetListByIdAsync(int id)
     {
         var list = await repository.GetByIdAsync(id);
-        return list != null ? MapToDto(list) : null;
+        return list != null ? mapper.Map<UserListDto>(list) : null;
     }
 
     public async Task<IEnumerable<UserListDto>> GetListsByUserIdAsync(int userId)
     {
         var lists = await repository.GetByUserIdAsync(userId);
-        return lists.Select(MapToDto);
+        return mapper.Map<IEnumerable<UserListDto>>(lists);
     }
 
     public async Task<UserListDto> CreateListAsync(CreateUserListDto dto, int userId)
@@ -36,7 +37,7 @@ public class UserListService(IUserListRepository repository, IBeanRepository bea
         };
 
         var addedList = await repository.AddAsync(list);
-        return MapToDto(addedList);
+        return mapper.Map<UserListDto>(addedList);
     }
 
     public async Task<UserListDto?> UpdateListAsync(int id, UpdateUserListDto dto, int userId)
@@ -46,7 +47,7 @@ public class UserListService(IUserListRepository repository, IBeanRepository bea
 
         list.Name = dto.Name;
 
-        return await repository.UpdateAsync(list) ? MapToDto(list) : null;
+        return await repository.UpdateAsync(list) ? mapper.Map<UserListDto>(list) : null;
     }
 
     public async Task<bool> DeleteListAsync(int id, int userId)
@@ -72,24 +73,5 @@ public class UserListService(IUserListRepository repository, IBeanRepository bea
         if (list is null || list.UserId != userId) return false;
 
         return await repository.RemoveBeanFromListAsync(listId, beanId);
-    }
-
-    private static UserListDto MapToDto(UserList list)
-    {
-        return new UserListDto
-        {
-            Id = list.Id,
-            Name = list.Name,
-            UserId = list.UserId,
-            Items = list.Items?.Select(item => new ListItemDto
-            {
-                ListId = item.ListId,
-                BeanId = item.BeanId,
-                BeanName = item.Bean?.Name ?? string.Empty,
-                OriginCountry = item.Bean?.Origin?.Country ?? string.Empty,
-                OriginRegion = item.Bean?.Origin?.Region,
-                Price = item.Bean?.Price ?? 0
-            }).ToList() ?? []
-        };
     }
 }

@@ -25,10 +25,13 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the review to retrieve</param>
     /// <returns>The requested review or NotFound</returns>
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<ReviewDto>> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ReviewDto>> GetById(string id)
     {
-        var review = await reviewService.GetReviewByIdAsync(id);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var review = await reviewService.GetReviewByIdAsync(parsedId);
         if (review is null) return NotFound();
         return Ok(review);
     }
@@ -53,10 +56,13 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
     /// <param name="createDto">The review data to create</param>
     /// <param name="userId">ID of the user creating the review</param>
     /// <returns>The created review with its new ID</returns>
-    [HttpPost("users/{userId:int}")]
-    public async Task<ActionResult<ReviewDto>> Create(CreateReviewDto createDto, int userId)
+    [HttpPost("users/{userId}")]
+    public async Task<ActionResult<ReviewDto>> Create(CreateReviewDto createDto, string userId)
     {
-        var (review, errorMessage) = await reviewService.CreateReviewAsync(createDto, userId);
+        if (!int.TryParse(userId, out var parsedUserId))
+            return BadRequest("Invalid user ID format or value too large.");
+
+        var (review, errorMessage) = await reviewService.CreateReviewAsync(createDto, parsedUserId);
 
         if (errorMessage != null)
             return BadRequest(new { Message = errorMessage });
@@ -71,10 +77,16 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
     /// <param name="updateDto">New review data</param>
     /// <param name="userId">ID of the user updating the review</param>
     /// <returns>No content on success</returns>
-    [HttpPut("{id:int}/users/{userId:int}")]
-    public async Task<IActionResult> Update(int id, UpdateReviewDto updateDto, int userId)
+    [HttpPut("{id}/users/{userId}")]
+    public async Task<IActionResult> Update(string id, UpdateReviewDto updateDto, string userId)
     {
-        var success = await reviewService.UpdateReviewAsync(id, updateDto, userId);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid review ID format or value too large.");
+
+        if (!int.TryParse(userId, out var parsedUserId))
+            return BadRequest("Invalid user ID format or value too large.");
+
+        var success = await reviewService.UpdateReviewAsync(parsedId, updateDto, parsedUserId);
         if (!success) return NotFound();
         return NoContent();
     }
@@ -84,10 +96,13 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
     /// </summary>
     /// <param name="id">ID of the review to delete</param>
     /// <returns>No content on success</returns>
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
     {
-        var success = await reviewService.DeleteReviewAsync(id);
+        if (!int.TryParse(id, out var parsedId))
+            return BadRequest("Invalid ID format or value too large.");
+
+        var success = await reviewService.DeleteReviewAsync(parsedId);
         if (!success) return NotFound();
         return NoContent();
     }
