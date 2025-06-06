@@ -1,10 +1,12 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using CoffeeBeanExplorer.Domain.Enums;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
-using System.Security.Claims;
+using Serilog;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
@@ -31,7 +33,7 @@ public class AuthService(IUserRepository userRepository, IJwtService jwtService)
             Salt = salt,
             FirstName = request.FirstName,
             LastName = request.LastName,
-            Role = Domain.Enums.UserRole.User,
+            Role = UserRole.User,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsActive = true
@@ -147,7 +149,7 @@ public class AuthService(IUserRepository userRepository, IJwtService jwtService)
         }
         catch (Exception ex)
         {
-            Serilog.Log.Error(ex, "Password verification failed: {ErrorMessage}", ex.Message);
+            Log.Error(ex, "Password verification failed: {ErrorMessage}", ex.Message);
             return false;
         }
     }

@@ -22,12 +22,7 @@ public class OriginService(IOriginRepository repository, IMapper mapper) : IOrig
 
     public async Task<OriginDto> CreateOriginAsync(CreateOriginDto dto)
     {
-        var origin = new Origin
-        {
-            Country = dto.Country,
-            Region = dto.Region
-        };
-
+        var origin = mapper.Map<Origin>(dto);
         var addedOrigin = await repository.AddAsync(origin);
         return mapper.Map<OriginDto>(addedOrigin);
     }
@@ -37,9 +32,7 @@ public class OriginService(IOriginRepository repository, IMapper mapper) : IOrig
         var origin = await repository.GetByIdAsync(id);
         if (origin is null) return false;
 
-        origin.Country = dto.Country;
-        origin.Region = dto.Region;
-
+        mapper.Map(dto, origin);
         return await repository.UpdateAsync(origin);
     }
 

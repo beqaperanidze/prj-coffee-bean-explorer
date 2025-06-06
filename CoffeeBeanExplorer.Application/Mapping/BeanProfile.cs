@@ -19,5 +19,9 @@ public class BeanProfile : Profile
                 opt => opt.MapFrom(src => src.Origin != null ? src.Origin.Region : null))
             .ForMember(dest => dest.Tags,
                 opt => opt.MapFrom(src => src.BeanTags));
+
+        CreateMap<CreateBeanDto, Bean>();
+        CreateMap<UpdateBeanDto, Bean>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 }

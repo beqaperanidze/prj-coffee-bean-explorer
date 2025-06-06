@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace CoffeeBeanExplorer.Application.DTOs;
+﻿namespace CoffeeBeanExplorer.Application.DTOs;
 
 public class ReviewDto
 {

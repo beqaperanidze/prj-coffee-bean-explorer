@@ -31,7 +31,6 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
             new { Id = id });
 
         if (user != null)
-        {
             user.RefreshTokens = (await connection.QueryAsync<RefreshToken>(
                 """
                 SELECT "Id", "Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId"
@@ -39,7 +38,6 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
                 WHERE "UserId" = @UserId
                 """,
                 new { UserId = id })).ToList();
-        }
 
         return user;
     }
@@ -57,7 +55,6 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
             new { Username = username });
 
         if (user != null)
-        {
             user.RefreshTokens = (await connection.QueryAsync<RefreshToken>(
                 """
                 SELECT "Id", "Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId"
@@ -65,7 +62,6 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
                 WHERE "UserId" = @UserId
                 """,
                 new { UserId = user.Id })).ToList();
-        }
 
         return user;
     }
@@ -83,7 +79,6 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
             new { Email = email });
 
         if (user != null)
-        {
             user.RefreshTokens = (await connection.QueryAsync<RefreshToken>(
                 """
                 SELECT "Id", "Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId"
@@ -91,7 +86,6 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
                 WHERE "UserId" = @UserId
                 """,
                 new { UserId = user.Id })).ToList();
-        }
 
         return user;
     }
@@ -115,13 +109,23 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
         using var connection = dbContext.GetConnection();
         var insertedUserId = await connection.QuerySingleAsync<int>(
             """
-            INSERT INTO "Auth"."Users" ("Username", "Email", "FirstName", "LastName", "PasswordHash", 
-                                        "Salt", "IsActive", "CreatedAt", "UpdatedAt")
-            VALUES (@Username, @Email, @FirstName, @LastName, @PasswordHash, 
-                    @Salt, @IsActive, now(), now())
+            INSERT INTO "Auth"."Users" ("Username", "Email", "FirstName", "LastName", "PasswordHash",
+                                        "Salt", "IsActive", "CreatedAt", "UpdatedAt", "Role")
+            VALUES (@Username, @Email, @FirstName, @LastName, @PasswordHash,
+                    @Salt, @IsActive, now(), now(), @Role::"UserRole")
             RETURNING "Id"
             """,
-            user);
+            new
+            {
+                user.Username,
+                user.Email,
+                user.FirstName,
+                user.LastName,
+                user.PasswordHash,
+                user.Salt,
+                user.IsActive,
+                Role = user.Role.ToString() // Pass enum as string
+            });
 
         user.Id = insertedUserId;
 
@@ -163,11 +167,8 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
                 transaction);
 
             if (user.RefreshTokens.Count != 0)
-            {
                 foreach (var token in user.RefreshTokens)
-                {
                     if (token.Id == 0)
-                    {
                         await connection.ExecuteAsync(
                             """
                             INSERT INTO "Auth"."RefreshTokens" ("Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId")
@@ -175,9 +176,7 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
                             """,
                             token,
                             transaction);
-                    }
                     else
-                    {
                         await connection.ExecuteAsync(
                             """
                             UPDATE "Auth"."RefreshTokens"
@@ -188,9 +187,6 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
                             """,
                             token,
                             transaction);
-                    }
-                }
-            }
 
             transaction.Commit();
             return rowsAffected > 0;

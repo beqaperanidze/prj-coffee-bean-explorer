@@ -32,18 +32,14 @@ public class ReviewService(IReviewRepository repository, IMapper mapper) : IRevi
         return mapper.Map<IEnumerable<ReviewDto>>(reviews);
     }
 
+
     public async Task<(ReviewDto? Review, string? ErrorMessage)> CreateReviewAsync(CreateReviewDto dto, int userId)
     {
         if (await repository.HasUserReviewedBeanAsync(userId, dto.BeanId))
             return (null, "User has already reviewed this bean");
 
-        var review = new Review
-        {
-            UserId = userId,
-            BeanId = dto.BeanId,
-            Rating = dto.Rating,
-            Comment = dto.Comment
-        };
+        var review = mapper.Map<Review>(dto);
+        review.UserId = userId;
 
         var addedReview = await repository.AddAsync(review);
         var fullReview = await repository.GetByIdAsync(addedReview.Id);
@@ -56,9 +52,7 @@ public class ReviewService(IReviewRepository repository, IMapper mapper) : IRevi
         var review = await repository.GetByIdAsync(id);
         if (review is null || review.UserId != userId) return false;
 
-        review.Rating = dto.Rating;
-        review.Comment = dto.Comment;
-
+        mapper.Map(dto, review);
         return await repository.UpdateAsync(review);
     }
 

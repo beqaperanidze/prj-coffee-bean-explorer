@@ -22,15 +22,7 @@ public class BeanService(IBeanRepository repository, IMapper mapper) : IBeanServ
 
     public async Task<BeanDto> CreateBeanAsync(CreateBeanDto dto)
     {
-        var bean = new Bean
-        {
-            Name = dto.Name,
-            OriginId = dto.OriginId,
-            RoastLevel = dto.RoastLevel,
-            Description = dto.Description,
-            Price = dto.Price
-        };
-
+        var bean = mapper.Map<Bean>(dto);
         var addedBean = await repository.AddAsync(bean);
         var fullBean = await repository.GetByIdAsync(addedBean.Id);
         return mapper.Map<BeanDto>(fullBean!);
@@ -41,12 +33,7 @@ public class BeanService(IBeanRepository repository, IMapper mapper) : IBeanServ
         var bean = await repository.GetByIdAsync(id);
         if (bean is null) return false;
 
-        bean.Name = dto.Name;
-        bean.OriginId = dto.OriginId;
-        bean.RoastLevel = dto.RoastLevel;
-        bean.Description = dto.Description;
-        bean.Price = dto.Price;
-
+        mapper.Map(dto, bean);
         return await repository.UpdateAsync(bean);
     }
 

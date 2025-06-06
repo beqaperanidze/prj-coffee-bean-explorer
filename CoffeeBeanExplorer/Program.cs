@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using CoffeeBeanExplorer.Application;
@@ -17,9 +18,11 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -41,7 +44,6 @@ builder.Services.AddVersionedApiExplorer(options =>
 });
 
 if (builder.Configuration.GetValue("Swagger:Enabled", true))
-{
     builder.Services.AddSwaggerGen(options =>
     {
         options.SwaggerDoc(
@@ -81,7 +83,6 @@ if (builder.Configuration.GetValue("Swagger:Enabled", true))
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
         options.IncludeXmlComments(xmlPath);
     });
-}
 
 var logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
 if (!Directory.Exists(logDirectory)) Directory.CreateDirectory(logDirectory);
@@ -101,13 +102,9 @@ builder.Services.AddApiVersioning(options =>
     if (versionParts.Length == 2 &&
         int.TryParse(versionParts[0], out var major) &&
         int.TryParse(versionParts[1], out var minor))
-    {
         options.DefaultApiVersion = new ApiVersion(major, minor);
-    }
     else
-    {
         options.DefaultApiVersion = new ApiVersion(1, 0);
-    }
 
     options.ReportApiVersions = apiVersionSection.GetValue<bool>("ReportApiVersions");
     options.ApiVersionReader = new UrlSegmentApiVersionReader();
@@ -162,6 +159,7 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<DbConnectionFactory>();
@@ -183,6 +181,14 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+
+builder.Services.AddHealthChecks()
+    .AddCheck("API", () => HealthCheckResult.Healthy("API is responding"), ["api"])
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultConnection") ?? "",
+        name: "database",
+        tags: ["db", "postgres", "postgresql"],
+        timeout: TimeSpan.FromSeconds(5));
 
 var app = builder.Build();
 
@@ -216,5 +222,28 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapGrpcService<CoffeeGrpcService>();
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/detail", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+
+        var result = JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            duration = report.TotalDuration,
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                duration = e.Value.Duration
+            })
+        });
+
+        await context.Response.WriteAsync(result);
+    }
+});
 
 app.Run();

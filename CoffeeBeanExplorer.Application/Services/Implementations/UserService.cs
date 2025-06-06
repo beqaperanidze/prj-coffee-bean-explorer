@@ -25,27 +25,14 @@ public class UserService(IUserRepository repository, IMapper mapper) : IUserServ
         if (user is null) return null;
 
         if (dto.Username is not null && user.Username != dto.Username)
-        {
             if (await repository.GetByUsernameAsync(dto.Username) is not null)
                 throw new InvalidOperationException("Username is already taken");
 
-            user.Username = dto.Username;
-        }
-
         if (dto.Email is not null && user.Email != dto.Email)
-        {
             if (await repository.GetByEmailAsync(dto.Email) is not null)
                 throw new InvalidOperationException("Email is already registered");
 
-            user.Email = dto.Email;
-        }
-
-        if (dto.FirstName is not null)
-            user.FirstName = dto.FirstName;
-
-        if (dto.LastName is not null)
-            user.LastName = dto.LastName;
-
+        mapper.Map(dto, user);
         return await repository.UpdateAsync(user) ? mapper.Map<UserDto>(user) : null;
     }
 

@@ -29,12 +29,8 @@ public class UserListService(IUserListRepository repository, IBeanRepository bea
 
     public async Task<UserListDto> CreateListAsync(CreateUserListDto dto, int userId)
     {
-        var list = new UserList
-        {
-            Name = dto.Name,
-            UserId = userId,
-            Items = []
-        };
+        var list = mapper.Map<UserList>(dto);
+        list.UserId = userId;
 
         var addedList = await repository.AddAsync(list);
         return mapper.Map<UserListDto>(addedList);
@@ -45,7 +41,7 @@ public class UserListService(IUserListRepository repository, IBeanRepository bea
         var list = await repository.GetByIdAsync(id);
         if (list is null || list.UserId != userId) return null;
 
-        list.Name = dto.Name;
+        mapper.Map(dto, list);
 
         return await repository.UpdateAsync(list) ? mapper.Map<UserListDto>(list) : null;
     }

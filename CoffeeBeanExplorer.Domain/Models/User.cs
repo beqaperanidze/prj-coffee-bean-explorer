@@ -1,5 +1,4 @@
 ﻿using CoffeeBeanExplorer.Domain.Enums;
-using System.Collections.Generic;
 
 namespace CoffeeBeanExplorer.Domain.Models;
 

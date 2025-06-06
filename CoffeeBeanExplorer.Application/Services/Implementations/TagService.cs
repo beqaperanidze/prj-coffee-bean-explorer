@@ -28,11 +28,7 @@ public class TagService(ITagRepository repository, IMapper mapper) : ITagService
 
     public async Task<TagDto> CreateTagAsync(CreateTagDto dto)
     {
-        var tag = new Tag
-        {
-            Name = dto.Name
-        };
-
+        var tag = mapper.Map<Tag>(dto);
         var addedTag = await repository.AddAsync(tag);
         return mapper.Map<TagDto>(addedTag);
     }
@@ -42,8 +38,7 @@ public class TagService(ITagRepository repository, IMapper mapper) : ITagService
         var tag = await repository.GetByIdAsync(id);
         if (tag is null) return false;
 
-        tag.Name = dto.Name;
-
+        mapper.Map(dto, tag);
         return await repository.UpdateAsync(tag);
     }
 
