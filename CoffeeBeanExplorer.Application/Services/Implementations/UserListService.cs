@@ -18,7 +18,7 @@ public class UserListService(IUserListRepository repository, IBeanRepository bea
     public async Task<UserListDto?> GetListByIdAsync(int id)
     {
         var list = await repository.GetByIdAsync(id);
-        return list != null ? mapper.Map<UserListDto>(list) : null;
+        return list is not null ? mapper.Map<UserListDto>(list) : null;
     }
 
     public async Task<IEnumerable<UserListDto>> GetListsByUserIdAsync(int userId)

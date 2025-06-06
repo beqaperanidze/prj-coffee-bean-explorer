@@ -1,5 +1,7 @@
-﻿using CoffeeBeanExplorer.Application.DTOs;
+﻿using System.Security.Claims;
+using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeBeanExplorer.Controllers;
@@ -7,8 +9,27 @@ namespace CoffeeBeanExplorer.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/users")]
+[Authorize]
 public class UserController(IUserService userService) : ControllerBase
 {
+    /// <summary>
+    ///     Retrieves the currently authenticated user
+    /// </summary>
+    /// <returns>The current user's information</returns>
+    [HttpGet("me")]
+    public async Task<ActionResult<UserDto>> GetCurrentUser()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var parsedId))
+            return Unauthorized("User is not authenticated or has invalid ID.");
+
+        var user = await userService.GetUserByIdAsync(parsedId);
+        if (user == null) return NotFound("User not found.");
+
+        return Ok(user);
+    }
+
     /// <summary>
     ///     Retrieves all users
     /// </summary>
@@ -37,25 +58,6 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     /// <summary>
-    ///     Creates a new user
-    /// </summary>
-    /// <param name="userRegistrationDto">The user data for registration</param>
-    /// <returns>The created user with its new ID</returns>
-    [HttpPost]
-    public async Task<ActionResult<UserDto>> Create(UserRegistrationDto userRegistrationDto)
-    {
-        try
-        {
-            var user = await userService.RegisterUserAsync(userRegistrationDto);
-            return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { ex.Message });
-        }
-    }
-
-    /// <summary>
     ///     Updates an existing user by ID
     /// </summary>
     /// <param name="id">ID of the user to update</param>
@@ -66,6 +68,14 @@ public class UserController(IUserService userService) : ControllerBase
     {
         if (!int.TryParse(id, out var parsedId))
             return BadRequest("Invalid ID format or value too large.");
+
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var currentParsedId))
+            return Unauthorized("User is not authenticated or has invalid ID.");
+
+        var isAdmin = User.IsInRole("Admin");
+        if (parsedId != currentParsedId && !isAdmin)
+            return Forbid("You can only update your own user information.");
 
         try
         {
@@ -89,6 +99,14 @@ public class UserController(IUserService userService) : ControllerBase
     {
         if (!int.TryParse(id, out var parsedId))
             return BadRequest("Invalid ID format or value too large.");
+
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var currentParsedId))
+            return Unauthorized("User is not authenticated or has invalid ID.");
+
+        var isAdmin = User.IsInRole("Admin");
+        if (parsedId != currentParsedId && !isAdmin)
+            return Forbid("You can only delete your own user account.");
 
         var success = await userService.DeleteUserAsync(parsedId);
         if (!success) return NotFound();

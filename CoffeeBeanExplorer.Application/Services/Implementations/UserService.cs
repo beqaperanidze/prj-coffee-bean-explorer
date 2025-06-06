@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
-using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
@@ -17,28 +16,7 @@ public class UserService(IUserRepository repository, IMapper mapper) : IUserServ
     public async Task<UserDto?> GetUserByIdAsync(int id)
     {
         var user = await repository.GetByIdAsync(id);
-        return user != null ? mapper.Map<UserDto>(user) : null;
-    }
-
-    public async Task<UserDto> RegisterUserAsync(UserRegistrationDto dto)
-    {
-        if (await repository.GetByUsernameAsync(dto.Username) != null)
-            throw new InvalidOperationException("Username is already taken");
-
-        if (await repository.GetByEmailAsync(dto.Email) != null)
-            throw new InvalidOperationException("Email is already registered");
-
-        var user = new User
-        {
-            Username = dto.Username,
-            Email = dto.Email,
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
-        };
-
-        var addedUser = await repository.AddAsync(user);
-        return mapper.Map<UserDto>(addedUser);
+        return user is not null ? mapper.Map<UserDto>(user) : null;
     }
 
     public async Task<UserDto?> UpdateUserAsync(int id, UserUpdateDto dto)
@@ -46,26 +24,26 @@ public class UserService(IUserRepository repository, IMapper mapper) : IUserServ
         var user = await repository.GetByIdAsync(id);
         if (user is null) return null;
 
-        if (dto.Username != null && user.Username != dto.Username)
+        if (dto.Username is not null && user.Username != dto.Username)
         {
-            if (await repository.GetByUsernameAsync(dto.Username) != null)
+            if (await repository.GetByUsernameAsync(dto.Username) is not null)
                 throw new InvalidOperationException("Username is already taken");
 
             user.Username = dto.Username;
         }
 
-        if (dto.Email != null && user.Email != dto.Email)
+        if (dto.Email is not null && user.Email != dto.Email)
         {
-            if (await repository.GetByEmailAsync(dto.Email) != null)
+            if (await repository.GetByEmailAsync(dto.Email) is not null)
                 throw new InvalidOperationException("Email is already registered");
 
             user.Email = dto.Email;
         }
 
-        if (dto.FirstName != null)
+        if (dto.FirstName is not null)
             user.FirstName = dto.FirstName;
 
-        if (dto.LastName != null)
+        if (dto.LastName is not null)
             user.LastName = dto.LastName;
 
         return await repository.UpdateAsync(user) ? mapper.Map<UserDto>(user) : null;

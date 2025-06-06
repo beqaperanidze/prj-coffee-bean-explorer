@@ -1,5 +1,7 @@
 ﻿using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using CoffeeBeanExplorer.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoffeeBeanExplorer.Controllers;
@@ -7,6 +9,7 @@ namespace CoffeeBeanExplorer.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/tags")]
+[Authorize]
 public class TagController(ITagService tagService) : ControllerBase
 {
     /// <summary>
@@ -52,18 +55,6 @@ public class TagController(ITagService tagService) : ControllerBase
     }
 
     /// <summary>
-    ///     Creates a new tag
-    /// </summary>
-    /// <param name="dto">The tag data to create</param>
-    /// <returns>The created tag with its new ID</returns>
-    [HttpPost]
-    public async Task<ActionResult<TagDto>> Create(CreateTagDto dto)
-    {
-        var tag = await tagService.CreateTagAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = tag.Id }, tag);
-    }
-
-    /// <summary>
     ///     Retrieves all beans that have a specific tag
     /// </summary>
     /// <param name="tagId">ID of the tag to filter beans by</param>
@@ -79,12 +70,27 @@ public class TagController(ITagService tagService) : ControllerBase
     }
 
     /// <summary>
+    ///     Creates a new tag
+    /// </summary>
+    /// <param name="dto">The tag data to create</param>
+    /// <returns>The created tag with its new ID</returns>
+    [HttpPost]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
+    public async Task<ActionResult<TagDto>> Create(CreateTagDto dto)
+    {
+        var tag = await tagService.CreateTagAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = tag.Id }, tag);
+    }
+
+
+    /// <summary>
     ///     Updates an existing tag by ID
     /// </summary>
     /// <param name="id">ID of the tag to update</param>
     /// <param name="dto">New tag data</param>
     /// <returns>No content on success</returns>
     [HttpPut("{id}")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<IActionResult> Update(string id, UpdateTagDto dto)
     {
         if (!int.TryParse(id, out var parsedId))
@@ -101,6 +107,7 @@ public class TagController(ITagService tagService) : ControllerBase
     /// <param name="id">ID of the tag to delete</param>
     /// <returns>No content on success</returns>
     [HttpDelete("{id}")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<IActionResult> Delete(string id)
     {
         if (!int.TryParse(id, out var parsedId))
@@ -118,6 +125,7 @@ public class TagController(ITagService tagService) : ControllerBase
     /// <param name="beanId">ID of the bean to tag</param>
     /// <returns>No content on success</returns>
     [HttpPost("{tagId}/beans/{beanId}")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<IActionResult> AddTagToBean(string tagId, string beanId)
     {
         if (!int.TryParse(tagId, out var parsedTagId))
@@ -138,6 +146,7 @@ public class TagController(ITagService tagService) : ControllerBase
     /// <param name="beanId">ID of the bean to remove tag from</param>
     /// <returns>No content on success</returns>
     [HttpDelete("{tagId}/beans/{beanId}")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<IActionResult> RemoveTagFromBean(string tagId, string beanId)
     {
         if (!int.TryParse(tagId, out var parsedTagId))

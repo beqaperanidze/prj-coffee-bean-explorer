@@ -17,7 +17,7 @@ public class BeanService(IBeanRepository repository, IMapper mapper) : IBeanServ
     public async Task<BeanDto?> GetBeanByIdAsync(int id)
     {
         var bean = await repository.GetByIdAsync(id);
-        return bean != null ? mapper.Map<BeanDto>(bean) : null;
+        return bean is not null ? mapper.Map<BeanDto>(bean) : null;
     }
 
     public async Task<BeanDto> CreateBeanAsync(CreateBeanDto dto)
