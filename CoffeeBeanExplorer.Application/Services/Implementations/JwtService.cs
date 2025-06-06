@@ -3,26 +3,28 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using CoffeeBeanExplorer.Domain.Configuration;
 using CoffeeBeanExplorer.Domain.Models;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
-public class JwtService(IConfiguration configuration) : IJwtService
+public class JwtService(IOptions<JwtSettings> jwtSettings) : IJwtService
 {
+    private readonly JwtSettings _jwtSettings = jwtSettings.Value;
+
     public string GenerateJwtToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"] ??
-                                          throw new InvalidOperationException("JWT key is not configured"));
+        var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.ToString())
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(ClaimTypes.Name, user.Username),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.Role.ToString())
         };
 
         if (!string.IsNullOrEmpty(user.FirstName))
@@ -34,11 +36,11 @@ public class JwtService(IConfiguration configuration) : IJwtService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(configuration["Jwt:ExpiryInMinutes"] ?? "15")),
+            Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryInMinutes),
             SigningCredentials =
                 new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = configuration["Jwt:Issuer"],
-            Audience = configuration["Jwt:Audience"]
+            Issuer = _jwtSettings.Issuer,
+            Audience = _jwtSettings.Audience
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -54,7 +56,7 @@ public class JwtService(IConfiguration configuration) : IJwtService
         return new RefreshToken
         {
             Token = Convert.ToBase64String(randomBytes),
-            Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(configuration["Jwt:RefreshTokenExpiryInDays"] ?? "7")),
+            Expires = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryInDays),
             Created = DateTime.UtcNow
         };
     }
@@ -66,8 +68,7 @@ public class JwtService(IConfiguration configuration) : IJwtService
             ValidateAudience = false,
             ValidateIssuer = false,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration["Jwt:Key"] ??
-                throw new InvalidOperationException("JWT key is not configured"))),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtSettings.Key)),
             ValidateLifetime = false
         };
 

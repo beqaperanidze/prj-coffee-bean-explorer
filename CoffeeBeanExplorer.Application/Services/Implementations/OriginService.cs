@@ -17,7 +17,7 @@ public class OriginService(IOriginRepository repository, IMapper mapper) : IOrig
     public async Task<OriginDto?> GetOriginByIdAsync(int id)
     {
         var origin = await repository.GetByIdAsync(id);
-        return origin != null ? mapper.Map<OriginDto>(origin) : null;
+        return origin is not null ? mapper.Map<OriginDto>(origin) : null;
     }
 
     public async Task<OriginDto> CreateOriginAsync(CreateOriginDto dto)

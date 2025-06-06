@@ -96,6 +96,20 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
         return user;
     }
 
+    public async Task<(bool UsernameExists, bool EmailExists)> CheckUserExistsAsync(string username, string email)
+    {
+        using var connection = dbContext.GetConnection();
+        var result = await connection.QueryFirstOrDefaultAsync<(int UsernameCount, int EmailCount)>(
+            """
+            SELECT 
+                (SELECT COUNT(*) FROM "Auth"."Users" WHERE "Username" = @Username) as UsernameCount,
+                (SELECT COUNT(*) FROM "Auth"."Users" WHERE LOWER("Email") = LOWER(@Email)) as EmailCount
+            """,
+            new { Username = username, Email = email });
+
+        return (result.UsernameCount > 0, result.EmailCount > 0);
+    }
+
     public async Task<User> AddAsync(User user)
     {
         using var connection = dbContext.GetConnection();

@@ -8,6 +8,7 @@ using CoffeeBeanExplorer.Application.Common.Services;
 using CoffeeBeanExplorer.Application.Services.Implementations;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Configuration;
+using CoffeeBeanExplorer.Domain.Configuration;
 using CoffeeBeanExplorer.Domain.Repositories;
 using CoffeeBeanExplorer.Infrastructure.Data;
 using CoffeeBeanExplorer.Infrastructure.Repositories;
@@ -88,7 +89,6 @@ if (!Directory.Exists(logDirectory)) Directory.CreateDirectory(logDirectory);
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
-Log.Logger.Information("Application starting - testing log file creation");
 
 var apiVersionSection = builder.Configuration.GetSection("ApiVersioning");
 builder.Services.AddApiVersioning(options =>
@@ -181,6 +181,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserListService, UserListService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
 var app = builder.Build();
 

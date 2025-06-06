@@ -12,10 +12,12 @@ public class AuthService(IUserRepository userRepository, IJwtService jwtService)
 {
     public async Task<AuthResponseDto> RegisterAsync(UserRegistrationDto request)
     {
-        if (await userRepository.GetByUsernameAsync(request.Username) != null)
+        var existenceCheck = await userRepository.CheckUserExistsAsync(request.Username, request.Email);
+
+        if (existenceCheck.UsernameExists)
             throw new InvalidOperationException("Username is already taken");
 
-        if (await userRepository.GetByEmailAsync(request.Email) != null)
+        if (existenceCheck.EmailExists)
             throw new InvalidOperationException("Email is already registered");
 
         var salt = GenerateSalt();
@@ -95,7 +97,7 @@ public class AuthService(IUserRepository userRepository, IJwtService jwtService)
         storedToken.Revoked = DateTime.UtcNow;
         storedToken.ReasonRevoked = reason ?? "Revoked without reason specified";
 
-        return user != null && await userRepository.UpdateAsync(user);
+        return user is not null && await userRepository.UpdateAsync(user);
     }
 
     private async Task<AuthResponseDto> GenerateAuthResponse(User user)
@@ -143,8 +145,9 @@ public class AuthService(IUserRepository userRepository, IJwtService jwtService)
 
             return string.Equals(computedHashString, storedHash, StringComparison.Ordinal);
         }
-        catch
+        catch (Exception ex)
         {
+            Serilog.Log.Error(ex, "Password verification failed: {ErrorMessage}", ex.Message);
             return false;
         }
     }

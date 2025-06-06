@@ -17,7 +17,7 @@ public class TagService(ITagRepository repository, IMapper mapper) : ITagService
     public async Task<TagDto?> GetTagByIdAsync(int id)
     {
         var tag = await repository.GetByIdAsync(id);
-        return tag != null ? mapper.Map<TagDto>(tag) : null;
+        return tag is not null ? mapper.Map<TagDto>(tag) : null;
     }
 
     public async Task<IEnumerable<TagDto>> GetTagsByBeanIdAsync(int beanId)

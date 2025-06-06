@@ -17,7 +17,7 @@ public class ReviewService(IReviewRepository repository, IMapper mapper) : IRevi
     public async Task<ReviewDto?> GetReviewByIdAsync(int id)
     {
         var review = await repository.GetByIdAsync(id);
-        return review != null ? mapper.Map<ReviewDto>(review) : null;
+        return review is not null ? mapper.Map<ReviewDto>(review) : null;
     }
 
     public async Task<IEnumerable<ReviewDto>> GetReviewsByBeanIdAsync(int beanId)

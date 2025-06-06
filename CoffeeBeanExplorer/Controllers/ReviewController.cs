@@ -67,7 +67,7 @@ public class ReviewController(IReviewService reviewService) : ControllerBase
 
         var (review, errorMessage) = await reviewService.CreateReviewAsync(createDto, currentParsedId);
 
-        if (errorMessage != null)
+        if (errorMessage is not null)
             return BadRequest(new { Message = errorMessage });
 
         return CreatedAtAction(nameof(GetById), new { id = review!.Id }, review);

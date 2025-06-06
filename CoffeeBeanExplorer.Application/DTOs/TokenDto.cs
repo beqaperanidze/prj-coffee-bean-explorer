@@ -2,11 +2,11 @@ namespace CoffeeBeanExplorer.Application.DTOs;
 
 public class RefreshTokenRequest
 {
-    public string Token { get; set; } = string.Empty;
-    public string RefreshToken { get; set; } = string.Empty;
+    public required string Token { get; set; }
+    public required string RefreshToken { get; set; }
 }
 
 public class RevokeTokenRequest
 {
-    public string RefreshToken { get; set; } = string.Empty;
+    public required string RefreshToken { get; set; }
 }

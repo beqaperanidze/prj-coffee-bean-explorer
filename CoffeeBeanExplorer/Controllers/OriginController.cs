@@ -1,6 +1,7 @@
 ﻿using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Origins.Commands;
 using CoffeeBeanExplorer.Application.Origins.Queries;
+using CoffeeBeanExplorer.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -46,7 +47,7 @@ public class OriginController(IMediator mediator) : ControllerBase
     /// <param name="createDto">The origin data to create</param>
     /// <returns>The created origin with its new ID</returns>
     [HttpPost]
-    [Authorize(Roles = "Brewer,Admin")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<ActionResult<OriginDto>> Create([FromBody] CreateOriginDto createDto)
     {
         var origin = await mediator.Send(new CreateOriginCommand(createDto));
@@ -60,7 +61,7 @@ public class OriginController(IMediator mediator) : ControllerBase
     /// <param name="updateDto">New origin data</param>
     /// <returns>No content on success</returns>
     [HttpPut("{id}")]
-    [Authorize(Roles = "Brewer,Admin")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<IActionResult> Update(string id, UpdateOriginDto updateDto)
     {
         if (!int.TryParse(id, out var parsedId))
@@ -77,7 +78,7 @@ public class OriginController(IMediator mediator) : ControllerBase
     /// <param name="id">ID of the origin to delete</param>
     /// <returns>No content on success</returns>
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Brewer,Admin")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<IActionResult> Delete(string id)
     {
         if (!int.TryParse(id, out var parsedId))

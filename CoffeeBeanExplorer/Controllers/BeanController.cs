@@ -1,5 +1,6 @@
 ﻿using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using CoffeeBeanExplorer.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,7 +41,7 @@ public class BeanController(IBeanService beanService) : ControllerBase
     ///     Create a new coffee bean.
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Brewer,Admin")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<ActionResult<BeanDto>> Create(CreateBeanDto dto)
     {
         var bean = await beanService.CreateBeanAsync(dto);
@@ -51,7 +52,7 @@ public class BeanController(IBeanService beanService) : ControllerBase
     ///     Update an existing bean.
     /// </summary>
     [HttpPut("{id}")]
-    [Authorize(Roles = "Brewer,Admin")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<IActionResult> Update(string id, UpdateBeanDto dto)
     {
         if (!int.TryParse(id, out var parsedId))
@@ -66,7 +67,7 @@ public class BeanController(IBeanService beanService) : ControllerBase
     ///     Delete a bean by its ID.
     /// </summary>
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Brewer,Admin")]
+    [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<IActionResult> Delete(string id)
     {
         if (!int.TryParse(id, out var parsedId))
