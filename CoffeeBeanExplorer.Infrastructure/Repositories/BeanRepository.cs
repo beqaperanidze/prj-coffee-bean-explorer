@@ -79,7 +79,7 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
                     result.BeanTags = new List<BeanTag>();
                 }
 
-                if (tag != null && tag.Id != 0)
+                if (tag is not null && tag.Id != 0)
                     result.BeanTags.Add(new BeanTag
                     {
                         BeanId = bean.Id,

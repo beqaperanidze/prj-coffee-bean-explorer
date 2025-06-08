@@ -166,7 +166,7 @@ public class TagRepository(DbConnectionFactory dbContext) : ITagRepository
                     existingBean = bean;
                 }
 
-                if (tag != null && tag.Id != 0)
+                if (tag is not null && tag.Id != 0)
                     existingBean.BeanTags.Add(new BeanTag
                     {
                         BeanId = bean.Id,

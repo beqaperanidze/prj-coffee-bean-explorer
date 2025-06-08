@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using CoffeeBeanExplorer.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,14 +10,16 @@ namespace CoffeeBeanExplorer.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/auth")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService, ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<IActionResult> Register(UserRegistrationDto request)
     {
         try
         {
+            logger.LogInformation("Attempting to register user with username: {Username}", request.Username);
             var response = await authService.RegisterAsync(request);
+            logger.LogInformation("User registered successfully with username: {Username}", request.Username);
             return Ok(new
             {
                 message = "Registration successful",
@@ -27,7 +30,8 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            logger.LogWarning(ex, "Registration failed for username: {Username}", request.Username);
+            throw new BadRequestException(ex.Message);
         }
     }
 
@@ -36,12 +40,15 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         try
         {
+            logger.LogInformation("Attempting login for user with username: {Username}", request.Username);
             var response = await authService.LoginAsync(request);
+            logger.LogInformation("Login successful for user with username: {Username}", request.Username);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
         {
-            return Unauthorized(new { message = ex.Message });
+            logger.LogWarning(ex, "Login failed for username: {Username}", request.Username);
+            throw new UnauthorizedException(ex.Message);
         }
     }
 
@@ -55,11 +62,13 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            logger.LogWarning(ex, "Token refresh failed");
+            throw new BadRequestException(ex.Message);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return BadRequest(new { message = "Invalid token" });
+            logger.LogWarning(ex, "Invalid token");
+            throw new BadRequestException("Invalid token");
         }
     }
 
@@ -69,12 +78,20 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var userIdInt))
-            return Unauthorized();
+        {
+            logger.LogWarning("User authentication failed or invalid ID when revoking token");
+            throw new UnauthorizedException("User is not authenticated or has invalid ID.");
+        }
 
+        logger.LogInformation("Attempting to revoke token for user ID: {UserId}", userIdInt);
         var success = await authService.RevokeTokenAsync(request.RefreshToken, userIdInt, "Revoked by user");
         if (!success)
-            return NotFound("Token not found or already revoked");
+        {
+            logger.LogWarning("Token not found or already revoked for user ID: {UserId}", userIdInt);
+            throw new NotFoundException("Token not found or already revoked");
+        }
 
+        logger.LogInformation("Token successfully revoked for user ID: {UserId}", userIdInt);
         return Ok(new { message = "Token revoked" });
     }
 }

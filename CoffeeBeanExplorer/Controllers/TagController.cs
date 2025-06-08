@@ -1,6 +1,7 @@
 ﻿using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Domain.Enums;
+using CoffeeBeanExplorer.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,7 @@ namespace CoffeeBeanExplorer.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/tags")]
 [Authorize]
-public class TagController(ITagService tagService) : ControllerBase
+public class TagController(ITagService tagService, ILogger<TagController> logger) : ControllerBase
 {
     /// <summary>
     ///     Retrieves all tags
@@ -19,7 +20,9 @@ public class TagController(ITagService tagService) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TagDto>>> GetAll()
     {
+        logger.LogInformation("Retrieving all tags");
         var tags = await tagService.GetAllTagsAsync();
+        logger.LogInformation("Successfully retrieved {TagCount} tags", tags.Count());
         return Ok(tags);
     }
 
@@ -32,10 +35,20 @@ public class TagController(ITagService tagService) : ControllerBase
     public async Task<ActionResult<TagDto>> GetById(string id)
     {
         if (!int.TryParse(id, out var parsedId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid tag ID format: {TagId}", id);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
+        logger.LogInformation("Retrieving tag with ID: {TagId}", parsedId);
         var tag = await tagService.GetTagByIdAsync(parsedId);
-        if (tag is null) return NotFound();
+        if (tag is null)
+        {
+            logger.LogWarning("Tag not found for ID: {TagId}", parsedId);
+            throw new NotFoundException($"Tag with ID {parsedId} not found.");
+        }
+
+        logger.LogInformation("Tag retrieved successfully with ID: {TagId}", parsedId);
         return Ok(tag);
     }
 
@@ -48,9 +61,14 @@ public class TagController(ITagService tagService) : ControllerBase
     public async Task<ActionResult<IEnumerable<TagDto>>> GetByBeanId(string beanId)
     {
         if (!int.TryParse(beanId, out var parsedBeanId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid bean ID format: {BeanId}", beanId);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
+        logger.LogInformation("Retrieving tags for bean ID: {BeanId}", parsedBeanId);
         var tags = await tagService.GetTagsByBeanIdAsync(parsedBeanId);
+        logger.LogInformation("Retrieved {TagCount} tags for bean ID: {BeanId}", tags.Count(), parsedBeanId);
         return Ok(tags);
     }
 
@@ -63,9 +81,14 @@ public class TagController(ITagService tagService) : ControllerBase
     public async Task<ActionResult<IEnumerable<BeanDto>>> GetBeansByTagId(string tagId)
     {
         if (!int.TryParse(tagId, out var parsedTagId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid tag ID format: {TagId}", tagId);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
+        logger.LogInformation("Retrieving beans for tag ID: {TagId}", parsedTagId);
         var beans = await tagService.GetBeansByTagIdAsync(parsedTagId);
+        logger.LogInformation("Retrieved {BeanCount} beans for tag ID: {TagId}", beans.Count(), parsedTagId);
         return Ok(beans);
     }
 
@@ -78,10 +101,19 @@ public class TagController(ITagService tagService) : ControllerBase
     [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<ActionResult<TagDto>> Create(CreateTagDto dto)
     {
-        var tag = await tagService.CreateTagAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = tag.Id }, tag);
+        try
+        {
+            logger.LogInformation("Creating new tag with name: {TagName}", dto.Name);
+            var tag = await tagService.CreateTagAsync(dto);
+            logger.LogInformation("Created new tag with ID: {TagId}", tag.Id);
+            return CreatedAtAction(nameof(GetById), new { id = tag.Id }, tag);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error occurred while creating tag");
+            throw new InternalServerErrorException($"An error occurred while creating tag: {ex.Message}");
+        }
     }
-
 
     /// <summary>
     ///     Updates an existing tag by ID
@@ -94,10 +126,20 @@ public class TagController(ITagService tagService) : ControllerBase
     public async Task<IActionResult> Update(string id, UpdateTagDto dto)
     {
         if (!int.TryParse(id, out var parsedId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid tag ID format for update: {TagId}", id);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
+        logger.LogInformation("Updating tag with ID: {TagId}", parsedId);
         var success = await tagService.UpdateTagAsync(parsedId, dto);
-        if (!success) return NotFound();
+        if (!success)
+        {
+            logger.LogWarning("Tag not found for update, ID: {TagId}", parsedId);
+            throw new NotFoundException($"Tag with ID {parsedId} not found.");
+        }
+
+        logger.LogInformation("Tag {TagId} updated successfully", parsedId);
         return NoContent();
     }
 
@@ -111,10 +153,20 @@ public class TagController(ITagService tagService) : ControllerBase
     public async Task<IActionResult> Delete(string id)
     {
         if (!int.TryParse(id, out var parsedId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid tag ID format for deletion: {TagId}", id);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
+        logger.LogInformation("Attempting to delete tag with ID: {TagId}", parsedId);
         var success = await tagService.DeleteTagAsync(parsedId);
-        if (!success) return NotFound();
+        if (!success)
+        {
+            logger.LogWarning("Tag not found for deletion, ID: {TagId}", parsedId);
+            throw new NotFoundException($"Tag with ID {parsedId} not found.");
+        }
+
+        logger.LogInformation("Tag deleted successfully, ID: {TagId}", parsedId);
         return NoContent();
     }
 
@@ -129,13 +181,28 @@ public class TagController(ITagService tagService) : ControllerBase
     public async Task<IActionResult> AddTagToBean(string tagId, string beanId)
     {
         if (!int.TryParse(tagId, out var parsedTagId))
-            return BadRequest("Invalid tag ID format or value too large.");
+        {
+            logger.LogWarning("Invalid tag ID format: {TagId}", tagId);
+            throw new BadRequestException("Invalid tag ID format or value too large.");
+        }
 
         if (!int.TryParse(beanId, out var parsedBeanId))
-            return BadRequest("Invalid bean ID format or value too large.");
+        {
+            logger.LogWarning("Invalid bean ID format: {BeanId}", beanId);
+            throw new BadRequestException("Invalid bean ID format or value too large.");
+        }
 
+        logger.LogInformation("Attempting to associate tag ID: {TagId} with bean ID: {BeanId}", parsedTagId,
+            parsedBeanId);
         var success = await tagService.AddTagToBeanAsync(parsedTagId, parsedBeanId);
-        if (!success) return BadRequest();
+        if (!success)
+        {
+            logger.LogWarning("Failed to associate tag ID: {TagId} with bean ID: {BeanId}", parsedTagId, parsedBeanId);
+            throw new BadRequestException("Tag or bean not found, or association already exists.");
+        }
+
+        logger.LogInformation("Tag ID: {TagId} successfully associated with bean ID: {BeanId}", parsedTagId,
+            parsedBeanId);
         return NoContent();
     }
 
@@ -150,13 +217,29 @@ public class TagController(ITagService tagService) : ControllerBase
     public async Task<IActionResult> RemoveTagFromBean(string tagId, string beanId)
     {
         if (!int.TryParse(tagId, out var parsedTagId))
-            return BadRequest("Invalid tag ID format or value too large.");
+        {
+            logger.LogWarning("Invalid tag ID format: {TagId}", tagId);
+            throw new BadRequestException("Invalid tag ID format or value too large.");
+        }
 
         if (!int.TryParse(beanId, out var parsedBeanId))
-            return BadRequest("Invalid bean ID format or value too large.");
+        {
+            logger.LogWarning("Invalid bean ID format: {BeanId}", beanId);
+            throw new BadRequestException("Invalid bean ID format or value too large.");
+        }
 
+        logger.LogInformation("Attempting to remove association of tag ID: {TagId} from bean ID: {BeanId}", parsedTagId,
+            parsedBeanId);
         var success = await tagService.RemoveTagFromBeanAsync(parsedTagId, parsedBeanId);
-        if (!success) return NotFound();
+        if (!success)
+        {
+            logger.LogWarning("Failed to remove association of tag ID: {TagId} from bean ID: {BeanId}", parsedTagId,
+                parsedBeanId);
+            throw new BadRequestException("Tag or bean not found, or association doesn't exist.");
+        }
+
+        logger.LogInformation("Association of tag ID: {TagId} successfully removed from bean ID: {BeanId}", parsedTagId,
+            parsedBeanId);
         return NoContent();
     }
 }

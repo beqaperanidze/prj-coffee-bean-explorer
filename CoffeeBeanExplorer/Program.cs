@@ -10,6 +10,7 @@ using CoffeeBeanExplorer.Application.Services.Implementations;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
 using CoffeeBeanExplorer.Configuration;
 using CoffeeBeanExplorer.Domain.Configuration;
+using CoffeeBeanExplorer.Domain.Exceptions;
 using CoffeeBeanExplorer.Domain.Repositories;
 using CoffeeBeanExplorer.Infrastructure.Data;
 using CoffeeBeanExplorer.Infrastructure.Repositories;
@@ -218,6 +219,7 @@ app.UseSerilogRequestLogging(options =>
     };
 });
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

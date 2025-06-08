@@ -10,7 +10,7 @@ public class RefreshToken
     public string? ReplacedByToken { get; set; }
     public string? ReasonRevoked { get; set; }
     public bool IsExpired => DateTime.UtcNow >= Expires;
-    public bool IsRevoked => Revoked != null;
+    public bool IsRevoked => Revoked is not null;
     public bool IsActive => !IsRevoked && !IsExpired;
 
     public int UserId { get; set; }

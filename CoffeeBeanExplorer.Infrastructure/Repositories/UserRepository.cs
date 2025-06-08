@@ -30,7 +30,7 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
             """,
             new { Id = id });
 
-        if (user != null)
+        if (user is not null)
             user.RefreshTokens = (await connection.QueryAsync<RefreshToken>(
                 """
                 SELECT "Id", "Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId"
@@ -54,7 +54,7 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
             """,
             new { Username = username });
 
-        if (user != null)
+        if (user is not null)
             user.RefreshTokens = (await connection.QueryAsync<RefreshToken>(
                 """
                 SELECT "Id", "Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId"
@@ -78,7 +78,7 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
             """,
             new { Email = email });
 
-        if (user != null)
+        if (user is not null)
             user.RefreshTokens = (await connection.QueryAsync<RefreshToken>(
                 """
                 SELECT "Id", "Token", "Expires", "Created", "Revoked", "ReplacedByToken", "ReasonRevoked", "UserId"
@@ -124,7 +124,7 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
                 user.PasswordHash,
                 user.Salt,
                 user.IsActive,
-                Role = user.Role.ToString() // Pass enum as string
+                Role = user.Role.ToString()
             });
 
         user.Id = insertedUserId;
@@ -201,28 +201,24 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
     public async Task<bool> DeleteAsync(int id)
     {
         using var connection = dbContext.GetConnection();
-        using var transaction = connection.BeginTransaction();
+        var userExists =
+            await connection.ExecuteScalarAsync<bool>("SELECT COUNT(*) > 0 FROM \"Auth\".\"Users\" WHERE \"Id\" = @Id",
+                new { Id = id });
+        if (!userExists)
+        {
+            return false;
+        }
 
+        using var transaction = connection.BeginTransaction();
         try
         {
             await connection.ExecuteAsync(
-                """
-                DELETE FROM "Auth"."RefreshTokens" WHERE "UserId" = @Id;
-                DELETE FROM "Social"."UserLists" WHERE "UserId" = @Id;
-                DELETE FROM "Social"."Reviews" WHERE "UserId" = @Id;
-                DELETE FROM "Auth"."Users" WHERE "Id" = @Id;
-                """,
-                new { Id = id },
-                transaction);
-
+                """ DELETE FROM "Auth"."RefreshTokens" WHERE "UserId" = @Id; DELETE FROM "Social"."UserLists" WHERE "UserId" = @Id; DELETE FROM "Social"."Reviews" WHERE "UserId" = @Id; DELETE FROM "Auth"."Users" WHERE "Id" = @Id; """,
+                new { Id = id }, transaction);
             transaction.Commit();
-            var exists = await connection.ExecuteScalarAsync<bool>(
-                "SELECT COUNT(*) > 0 FROM \"Auth\".\"Users\" WHERE \"Id\" = @Id",
-                new { Id = id });
-
-            return !exists;
+            return true;
         }
-        catch
+        catch (Exception ex)
         {
             transaction.Rollback();
             throw;
