@@ -254,4 +254,14 @@ public class UserListRepository(DbConnectionFactory dbContext) : IUserListReposi
 
         return rowsAffected > 0;
     }
+
+    public async Task<bool> IsBeanInListAsync(int listId, int beanId)
+    {
+        using var connection = dbContext.GetConnection();
+        var sql = @"SELECT COUNT(*) > 0 
+                FROM ""Social"".""ListItems"" 
+                WHERE ""ListId"" = @ListId AND ""BeanId"" = @BeanId";
+
+        return await connection.ExecuteScalarAsync<bool>(sql, new { ListId = listId, BeanId = beanId });
+    }
 }

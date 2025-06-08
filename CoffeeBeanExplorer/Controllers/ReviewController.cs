@@ -139,7 +139,10 @@ public class ReviewController(IReviewService reviewService, ILogger<ReviewContro
         }
 
         logger.LogInformation("Updating review with ID: {ReviewId}", parsedId);
-        var success = await reviewService.UpdateReviewAsync(parsedId, updateDto, currentParsedId);
+
+        var userIdForUpdate = isAdminOrBrewer ? review.UserId : currentParsedId;
+
+        var success = await reviewService.UpdateReviewAsync(parsedId, updateDto, userIdForUpdate);
         if (!success)
         {
             logger.LogWarning("Failed to update review with ID: {ReviewId}", parsedId);

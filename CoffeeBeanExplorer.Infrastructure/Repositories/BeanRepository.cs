@@ -165,4 +165,16 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
 
         return !exists;
     }
+
+    public async Task<bool> ExistsAsync(int id)
+    {
+        using var connection = dbContext.GetConnection();
+        return await connection.ExecuteScalarAsync<bool>(
+            """
+            SELECT COUNT(*) > 0
+            FROM "Product"."Beans"
+            WHERE "Id" = @Id
+            """,
+            new { Id = id });
+    }
 }

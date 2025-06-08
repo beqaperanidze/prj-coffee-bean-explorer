@@ -201,27 +201,44 @@ public class UserRepository(DbConnectionFactory dbContext) : IUserRepository
     public async Task<bool> DeleteAsync(int id)
     {
         using var connection = dbContext.GetConnection();
-        var userExists =
-            await connection.ExecuteScalarAsync<bool>("SELECT COUNT(*) > 0 FROM \"Auth\".\"Users\" WHERE \"Id\" = @Id",
-                new { Id = id });
-        if (!userExists)
-        {
-            return false;
-        }
+        var userExists = await connection.ExecuteScalarAsync<bool>(
+            "SELECT COUNT(*) > 0 FROM \"Auth\".\"Users\" WHERE \"Id\" = @Id",
+            new { Id = id });
+
+        if (!userExists) return false;
 
         using var transaction = connection.BeginTransaction();
         try
         {
             await connection.ExecuteAsync(
-                """ DELETE FROM "Auth"."RefreshTokens" WHERE "UserId" = @Id; DELETE FROM "Social"."UserLists" WHERE "UserId" = @Id; DELETE FROM "Social"."Reviews" WHERE "UserId" = @Id; DELETE FROM "Auth"."Users" WHERE "Id" = @Id; """,
+                """
+                DELETE FROM "Social"."ListItems" WHERE "ListId" IN (SELECT "Id" FROM "Social"."UserLists" WHERE "UserId" = @Id);
+                DELETE FROM "Auth"."RefreshTokens" WHERE "UserId" = @Id;
+                DELETE FROM "Social"."UserLists" WHERE "UserId" = @Id;
+                DELETE FROM "Social"."Reviews" WHERE "UserId" = @Id;
+                DELETE FROM "Auth"."Users" WHERE "Id" = @Id;
+                """,
                 new { Id = id }, transaction);
+
             transaction.Commit();
             return true;
         }
-        catch (Exception ex)
+        catch
         {
             transaction.Rollback();
             throw;
         }
+    }
+
+    public async Task<bool> ExistsAsync(int id)
+    {
+        using var connection = dbContext.GetConnection();
+        return await connection.ExecuteScalarAsync<bool>(
+            """
+            SELECT COUNT(*) > 0
+            FROM "Auth"."Users"
+            WHERE "Id" = @Id
+            """,
+            new { Id = id });
     }
 }

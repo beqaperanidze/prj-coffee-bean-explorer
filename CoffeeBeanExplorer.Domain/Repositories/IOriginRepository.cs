@@ -9,4 +9,5 @@ public interface IOriginRepository
     Task<Origin> AddAsync(Origin origin);
     Task<bool> UpdateAsync(Origin origin);
     Task<bool> DeleteAsync(int id);
+    Task<bool> ExistsAsync(int id);
 }

@@ -6,7 +6,7 @@ using CoffeeBeanExplorer.Domain.Repositories;
 
 namespace CoffeeBeanExplorer.Application.Services.Implementations;
 
-public class TagService(ITagRepository repository, IMapper mapper) : ITagService
+public class TagService(ITagRepository repository, IMapper mapper, IBeanRepository beanRepository) : ITagService
 {
     public async Task<IEnumerable<TagDto>> GetAllTagsAsync()
     {
@@ -49,11 +49,23 @@ public class TagService(ITagRepository repository, IMapper mapper) : ITagService
 
     public async Task<bool> AddTagToBeanAsync(int tagId, int beanId)
     {
+        var tag = await repository.GetByIdAsync(tagId);
+        if (tag is null) return false;
+
+        var bean = await beanRepository.GetByIdAsync(beanId);
+        if (bean is null) return false;
+
         return await repository.AddTagToBeanAsync(tagId, beanId);
     }
 
     public async Task<bool> RemoveTagFromBeanAsync(int tagId, int beanId)
     {
+        var tag = await repository.GetByIdAsync(tagId);
+        if (tag is null) return false;
+
+        var bean = await beanRepository.GetByIdAsync(beanId);
+        if (bean is null) return false;
+
         return await repository.RemoveTagFromBeanAsync(tagId, beanId);
     }
 
