@@ -12,6 +12,11 @@ namespace CoffeeBeanExplorer.Controllers;
 [Route("api/v{version:apiVersion}/auth")]
 public class AuthController(IAuthService authService) : ControllerBase
 {
+    /// <summary>
+    /// Register a new user account.
+    /// </summary>
+    /// <param name="request">User registration information</param>
+    /// <returns>Authentication tokens for the new user</returns>
     [HttpPost("register")]
     public async Task<IActionResult> Register(UserRegistrationDto request)
     {
@@ -32,6 +37,11 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Authenticate an existing user.
+    /// </summary>
+    /// <param name="request">User login credentials</param>
+    /// <returns>Authentication tokens for the user</returns>
     [HttpPost("login")]
     public async Task<IActionResult> Login(UserLoginRequest request)
     {
@@ -46,6 +56,11 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Generate new authentication tokens using a refresh token.
+    /// </summary>
+    /// <param name="request">Current token and refresh token</param>
+    /// <returns>New authentication tokens</returns>
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken(RefreshTokenRequest request)
     {
@@ -64,6 +79,11 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Invalidate a refresh token.
+    /// </summary>
+    /// <param name="request">The refresh token to revoke</param>
+    /// <returns>Confirmation of token revocation</returns>
     [Authorize]
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken(RevokeTokenRequest request)
