@@ -1,6 +1,9 @@
 using System.Net;
+using System.Net.Mime;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace CoffeeBeanExplorer.Domain.Exceptions;
@@ -19,10 +22,8 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         }
     }
 
-    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        logger.LogError(exception, "An error occurred: {Message}", exception.Message);
-
         var statusCode = HttpStatusCode.InternalServerError;
         var errorCode = "InternalServerError";
         var message = "An unexpected error occurred.";
@@ -34,13 +35,24 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             message = apiException.Message;
         }
 
-        var response = new
-        {
-            errorCode,
-            message
-        };
+        object response;
+        if (context.RequestServices.GetService<IHostEnvironment>()?.IsDevelopment() == true)
+            response = new
+            {
+                errorCode,
+                message,
+                detail = exception.ToString(),
+                stackTrace = exception.StackTrace,
+                innerException = exception.InnerException?.Message
+            };
+        else
+            response = new
+            {
+                errorCode,
+                message
+            };
 
-        context.Response.ContentType = "application/json";
+        context.Response.ContentType = MediaTypeNames.Application.Json;
         context.Response.StatusCode = (int)statusCode;
 
         var options = new JsonSerializerOptions

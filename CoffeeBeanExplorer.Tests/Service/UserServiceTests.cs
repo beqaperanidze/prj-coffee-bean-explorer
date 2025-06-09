@@ -1,234 +1,190 @@
+using AutoFixture;
+using AutoFixture.AutoMoq;
 using AutoMapper;
+using Bogus;
 using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Implementations;
 using CoffeeBeanExplorer.Domain.Models;
 using CoffeeBeanExplorer.Domain.Repositories;
 using Moq;
+using Shouldly;
 using Xunit;
 
 namespace CoffeeBeanExplorer.Tests.Service;
 
 public class UserServiceTests
 {
+    private readonly Faker _faker = new();
+    private readonly IFixture _fixture;
+
+    public UserServiceTests()
+    {
+        _fixture = new Fixture().Customize(new AutoMoqCustomization());
+
+        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+            .ForEach(b => _fixture.Behaviors.Remove(b));
+        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+    }
+
     [Fact]
     public async Task GetAllUsersAsync_ReturnsMappedUsers()
     {
-        var users = new List<User>
-        {
-            new()
-            {
-                Id = 1,
-                Username = "user1",
-                Email = "user1@mail.com",
-                PasswordHash = "hash",
-                Salt = "salt"
-            }
-        };
-        var userDtos = new List<UserDto>
-        {
-            new()
-            {
-                Id = 1,
-                Username = "user1",
-                Email = "user1@mail.com",
-                FirstName = "Test",
-                LastName = "User"
-            }
-        };
+        var users = _fixture.CreateMany<User>(3).ToList();
+        var userDtos = _fixture.CreateMany<UserDto>(3).ToList();
 
-        var repoMock = new Mock<IUserRepository>();
+        var repoMock = _fixture.Freeze<Mock<IUserRepository>>();
         repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(users);
 
-        var mapperMock = new Mock<IMapper>();
+        var mapperMock = _fixture.Freeze<Mock<IMapper>>();
         mapperMock.Setup(m => m.Map<IEnumerable<UserDto>>(users)).Returns(userDtos);
 
-        var service = new UserService(repoMock.Object, mapperMock.Object);
-
+        var service = _fixture.Create<UserService>();
         var result = await service.GetAllUsersAsync();
 
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("user1", ((List<UserDto>)result)[0].Username);
+        var enumerable = result as UserDto[] ?? result.ToArray();
+        enumerable.ShouldNotBeNull();
+        enumerable.ShouldBe(userDtos);
     }
 
     [Fact]
     public async Task GetUserByIdAsync_UserExists_ReturnsMappedUser()
     {
-        var user = new User
-        {
-            Id = 1,
-            Username = "user1",
-            Email = "user1@mail.com",
-            PasswordHash = "hash",
-            Salt = "salt"
-        };
-        var userDto = new UserDto
-        {
-            Id = 1,
-            Username = "user1",
-            Email = "user1@mail.com",
-            FirstName = "Test",
-            LastName = "User"
-        };
+        var userId = _faker.Random.Int(1, 1000);
+        var user = _fixture.Create<User>();
+        var userDto = _fixture.Create<UserDto>();
 
-        var repoMock = new Mock<IUserRepository>();
-        repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+        var repoMock = _fixture.Freeze<Mock<IUserRepository>>();
+        repoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
 
-        var mapperMock = new Mock<IMapper>();
+        var mapperMock = _fixture.Freeze<Mock<IMapper>>();
         mapperMock.Setup(m => m.Map<UserDto>(user)).Returns(userDto);
 
-        var service = new UserService(repoMock.Object, mapperMock.Object);
+        var service = _fixture.Create<UserService>();
+        var result = await service.GetUserByIdAsync(userId);
 
-        var result = await service.GetUserByIdAsync(1);
-
-        Assert.NotNull(result);
-        Assert.Equal("user1", result.Username);
+        result.ShouldNotBeNull();
+        result.ShouldBe(userDto);
     }
 
     [Fact]
     public async Task GetUserByIdAsync_UserNotFound_ReturnsNull()
     {
-        var repoMock = new Mock<IUserRepository>();
-        repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((User)null!);
+        var userId = _faker.Random.Int(1, 1000);
 
-        var mapperMock = new Mock<IMapper>();
+        var repoMock = _fixture.Freeze<Mock<IUserRepository>>();
+        repoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync((User)null!);
 
-        var service = new UserService(repoMock.Object, mapperMock.Object);
+        var service = _fixture.Create<UserService>();
+        var result = await service.GetUserByIdAsync(userId);
 
-        var result = await service.GetUserByIdAsync(1);
-
-        Assert.Null(result);
+        result.ShouldBeNull();
     }
 
     [Fact]
     public async Task UpdateUserAsync_ValidUpdate_ReturnsUpdatedUserDto()
     {
-        const int userId = 1;
-        var existingUser = new User
-        {
-            Id = userId,
-            Username = "olduser",
-            Email = "old@mail.com",
-            PasswordHash = "hash",
-            Salt = "salt"
-        };
-        var updateDto = new UserUpdateDto { Username = "newuser", Email = "new@mail.com" };
-        var updatedUserDto = new UserDto
-        {
-            Id = userId,
-            Username = "newuser",
-            Email = "new@mail.com",
-            FirstName = "Test",
-            LastName = "User"
-        };
+        var userId = _faker.Random.Int(1, 1000);
+        var existingUser = _fixture.Create<User>();
 
-        var repoMock = new Mock<IUserRepository>();
+        var updateDto = _fixture.Build<UserUpdateDto>()
+            .With(u => u.Username, _faker.Internet.UserName())
+            .With(u => u.Email, _faker.Internet.Email())
+            .Create();
+
+        var updatedUserDto = _fixture.Create<UserDto>();
+
+        var repoMock = _fixture.Freeze<Mock<IUserRepository>>();
         repoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(existingUser);
-        repoMock.Setup(r => r.GetByUsernameAsync("newuser")).ReturnsAsync((User)null!);
-        repoMock.Setup(r => r.GetByEmailAsync("new@mail.com")).ReturnsAsync((User)null!);
+        repoMock.Setup(r => r.GetByUsernameAsync(updateDto.Username!)).ReturnsAsync((User)null!);
+        repoMock.Setup(r => r.GetByEmailAsync(updateDto.Email!)).ReturnsAsync((User)null!);
         repoMock.Setup(r => r.UpdateAsync(existingUser)).ReturnsAsync(true);
 
-        var mapperMock = new Mock<IMapper>();
+        var mapperMock = _fixture.Freeze<Mock<IMapper>>();
         mapperMock.Setup(m => m.Map<UserDto>(It.IsAny<User>())).Returns(updatedUserDto);
-        mapperMock.Setup(m => m.Map(updateDto, existingUser));
 
-        var service = new UserService(repoMock.Object, mapperMock.Object);
-
+        var service = _fixture.Create<UserService>();
         var result = await service.UpdateUserAsync(userId, updateDto);
 
-        Assert.NotNull(result);
-        Assert.Equal("newuser", result.Username);
-        Assert.Equal("new@mail.com", result.Email);
+        result.ShouldNotBeNull();
+        result.ShouldBe(updatedUserDto);
         repoMock.Verify(r => r.UpdateAsync(existingUser), Times.Once);
     }
 
     [Fact]
     public async Task UpdateUserAsync_UserNotFound_ReturnsNull()
     {
-        var repoMock = new Mock<IUserRepository>();
-        repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((User)null!);
+        var userId = _faker.Random.Int(1, 1000);
+        var updateDto = _fixture.Build<UserUpdateDto>()
+            .With(u => u.Username, _faker.Internet.UserName())
+            .With(u => u.Email, _faker.Internet.Email())
+            .Create();
 
-        var mapperMock = new Mock<IMapper>();
-        var service = new UserService(repoMock.Object, mapperMock.Object);
+        var repoMock = _fixture.Freeze<Mock<IUserRepository>>();
+        repoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync((User)null!);
 
-        var result = await service.UpdateUserAsync(1, new UserUpdateDto());
+        var service = _fixture.Create<UserService>();
+        var result = await service.UpdateUserAsync(userId, updateDto);
 
-        Assert.Null(result);
+        result.ShouldBeNull();
     }
 
     [Fact]
     public async Task UpdateUserAsync_UsernameTaken_ThrowsException()
     {
-        const int userId = 1;
-        var existingUser = new User
-        {
-            Id = userId,
-            Username = "olduser",
-            Email = "old@mail.com",
-            PasswordHash = "hash",
-            Salt = "salt"
-        };
-        var updateDto = new UserUpdateDto { Username = "takenuser" };
+        var userId = _faker.Random.Int(1, 1000);
+        var existingUser = _fixture.Create<User>();
+        var takenUser = _fixture.Create<User>();
+        var username = _faker.Internet.UserName();
 
-        var repoMock = new Mock<IUserRepository>();
+        var updateDto = _fixture.Build<UserUpdateDto>()
+            .With(u => u.Username, username)
+            .With(u => u.Email, _faker.Internet.Email())
+            .Create();
+
+        var repoMock = _fixture.Freeze<Mock<IUserRepository>>();
         repoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(existingUser);
-        repoMock.Setup(r => r.GetByUsernameAsync("takenuser")).ReturnsAsync(new User
-        {
-            Id = 2,
-            Username = "takenuser",
-            Email = "taken@mail.com",
-            PasswordHash = "hash2",
-            Salt = "salt2"
-        });
+        repoMock.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(takenUser);
 
-        var mapperMock = new Mock<IMapper>();
-        var service = new UserService(repoMock.Object, mapperMock.Object);
+        var service = _fixture.Create<UserService>();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateUserAsync(userId, updateDto));
+        await Should.ThrowAsync<InvalidOperationException>(async () =>
+            await service.UpdateUserAsync(userId, updateDto));
     }
 
     [Fact]
     public async Task UpdateUserAsync_EmailTaken_ThrowsException()
     {
-        const int userId = 1;
-        var existingUser = new User
-        {
-            Id = userId,
-            Username = "olduser",
-            Email = "old@mail.com",
-            PasswordHash = "hash",
-            Salt = "salt"
-        };
-        var updateDto = new UserUpdateDto { Email = "taken@mail.com" };
+        var userId = _faker.Random.Int(1, 1000);
+        var existingUser = _fixture.Create<User>();
+        var takenUser = _fixture.Create<User>();
+        var email = _faker.Internet.Email();
 
-        var repoMock = new Mock<IUserRepository>();
+        var updateDto = _fixture.Build<UserUpdateDto>()
+            .With(u => u.Username, _faker.Internet.UserName())
+            .With(u => u.Email, email)
+            .Create();
+
+        var repoMock = _fixture.Freeze<Mock<IUserRepository>>();
         repoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(existingUser);
-        repoMock.Setup(r => r.GetByEmailAsync("taken@mail.com")).ReturnsAsync(new User
-        {
-            Id = 3,
-            Username = "otheruser",
-            Email = "taken@mail.com",
-            PasswordHash = "hash3",
-            Salt = "salt3"
-        });
+        repoMock.Setup(r => r.GetByEmailAsync(email)).ReturnsAsync(takenUser);
 
-        var mapperMock = new Mock<IMapper>();
-        var service = new UserService(repoMock.Object, mapperMock.Object);
+        var service = _fixture.Create<UserService>();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateUserAsync(userId, updateDto));
+        await Should.ThrowAsync<InvalidOperationException>(async () =>
+            await service.UpdateUserAsync(userId, updateDto));
     }
 
     [Fact]
     public async Task DeleteUserAsync_ReturnsResult()
     {
-        var repoMock = new Mock<IUserRepository>();
-        repoMock.Setup(r => r.DeleteAsync(1)).ReturnsAsync(true);
+        var userId = _faker.Random.Int(1, 1000);
 
-        var mapperMock = new Mock<IMapper>();
-        var service = new UserService(repoMock.Object, mapperMock.Object);
+        var repoMock = _fixture.Freeze<Mock<IUserRepository>>();
+        repoMock.Setup(r => r.DeleteAsync(userId)).ReturnsAsync(true);
 
-        var result = await service.DeleteUserAsync(1);
+        var service = _fixture.Create<UserService>();
+        var result = await service.DeleteUserAsync(userId);
 
-        Assert.True(result);
+        result.ShouldBeTrue();
     }
 }

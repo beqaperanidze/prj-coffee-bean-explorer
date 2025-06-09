@@ -87,11 +87,9 @@ public class ReviewService(
 
     public async Task<IEnumerable<ReviewDto>> GetReviewsAsync(int? beanId, int? userId)
     {
-        if (beanId.HasValue && !await beanRepository.ExistsAsync(beanId.Value))
-            return Enumerable.Empty<ReviewDto>();
-
-        if (userId.HasValue && !await userRepository.ExistsAsync(userId.Value))
-            return Enumerable.Empty<ReviewDto>();
+        if ((beanId.HasValue && !await beanRepository.ExistsAsync(beanId.Value)) ||
+            (userId.HasValue && !await userRepository.ExistsAsync(userId.Value)))
+            return [];
 
         var reviews = (beanId, userId) switch
         {
