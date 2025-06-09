@@ -75,4 +75,16 @@ public class OriginRepository(DbConnectionFactory dbContext) : IOriginRepository
 
         return rowsAffected > 0;
     }
+
+    public async Task<bool> ExistsAsync(int id)
+    {
+        using var connection = dbContext.GetConnection();
+        return await connection.ExecuteScalarAsync<bool>(
+            """
+            SELECT COUNT(*) > 0 
+            FROM "Product"."Origins" 
+            WHERE "Id" = @Id
+            """,
+            new { Id = id });
+    }
 }

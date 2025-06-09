@@ -1,8 +1,8 @@
 # Coffee Bean Explorer
 
-Coffee Bean Explorer is a C\# ASP.NET Core Web API for managing and exploring a collection of coffee beans, user
-reviews, tags, origins, and user-curated lists. It provides RESTful endpoints for CRUD operations and rich filtering,
-making it easy to build coffee-related applications or integrate with other systems.
+Coffee Bean Explorer is a C# ASP.NET Core Web API for managing and exploring a collection of coffee beans, user reviews,
+tags, origins, and user-curated lists. It provides RESTful endpoints for CRUD operations and rich filtering, making it
+easy to build coffee-related applications or integrate with other systems.
 
 ## Features
 
@@ -14,6 +14,7 @@ making it easy to build coffee-related applications or integrate with other syst
 
 ## API Endpoints
 
+- `/api/v1/auth` — Authentication endpoints (registration, login, token refresh, revocation)
 - `/api/v1/beans` — CRUD for coffee beans
 - `/api/v1/origins` — CRUD for bean origins
 - `/api/v1/tags` — CRUD for tags and tag-bean associations
@@ -47,9 +48,11 @@ making it easy to build coffee-related applications or integrate with other syst
    ```
 
 4. **Configure the database:**
-    - Update the connection string in `appsettings.json` to match your PostgreSQL setup.
-    - Run the SQL script at `CoffeeBeanExplorer.Infrastructure/Migrations/InitialSchema.sql` to set up the database
-      schema.
+    - Update the connection string in `appsettings.json` to match your PostgreSQL setup. Ensure the `DefaultConnection`
+      key is properly configured.
+    - Run the SQL scripts located at `CoffeeBeanExplorer.Infrastructure/Migrations/00001 - Initialize database.sql` and
+      `CoffeeBeanExplorer.Infrastructure/Migrations/00002 - Add User Auth.sql` to initialize the database schema.
+    - Verify that the database is accessible and migrations are applied successfully.
 
 5. **Run the application:**
    ```sh

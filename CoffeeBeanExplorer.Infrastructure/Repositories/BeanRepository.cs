@@ -79,7 +79,7 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
                     result.BeanTags = new List<BeanTag>();
                 }
 
-                if (tag != null && tag.Id != 0)
+                if (tag is not null && tag.Id != 0)
                     result.BeanTags.Add(new BeanTag
                     {
                         BeanId = bean.Id,
@@ -164,5 +164,17 @@ public class BeanRepository(DbConnectionFactory dbContext) : IBeanRepository
             new { Id = id });
 
         return !exists;
+    }
+
+    public async Task<bool> ExistsAsync(int id)
+    {
+        using var connection = dbContext.GetConnection();
+        return await connection.ExecuteScalarAsync<bool>(
+            """
+            SELECT COUNT(*) > 0
+            FROM "Product"."Beans"
+            WHERE "Id" = @Id
+            """,
+            new { Id = id });
     }
 }

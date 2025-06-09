@@ -9,4 +9,5 @@ public interface IBeanRepository
     Task<Bean> AddAsync(Bean bean);
     Task<bool> UpdateAsync(Bean bean);
     Task<bool> DeleteAsync(int id);
+    Task<bool> ExistsAsync(int id);
 }

@@ -1,8 +1,9 @@
+using System.Security.Claims;
 using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using CoffeeBeanExplorer.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace CoffeeBeanExplorer.Controllers;
 
@@ -11,6 +12,11 @@ namespace CoffeeBeanExplorer.Controllers;
 [Route("api/v{version:apiVersion}/auth")]
 public class AuthController(IAuthService authService) : ControllerBase
 {
+    /// <summary>
+    /// Register a new user account.
+    /// </summary>
+    /// <param name="request">User registration information</param>
+    /// <returns>Authentication tokens for the new user</returns>
     [HttpPost("register")]
     public async Task<IActionResult> Register(UserRegistrationDto request)
     {
@@ -27,10 +33,15 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            throw new BadRequestException(ex.Message);
         }
     }
 
+    /// <summary>
+    /// Authenticate an existing user.
+    /// </summary>
+    /// <param name="request">User login credentials</param>
+    /// <returns>Authentication tokens for the user</returns>
     [HttpPost("login")]
     public async Task<IActionResult> Login(UserLoginRequest request)
     {
@@ -41,10 +52,15 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return Unauthorized(new { message = ex.Message });
+            throw new UnauthorizedException(ex.Message);
         }
     }
 
+    /// <summary>
+    /// Generate new authentication tokens using a refresh token.
+    /// </summary>
+    /// <param name="request">Current token and refresh token</param>
+    /// <returns>New authentication tokens</returns>
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken(RefreshTokenRequest request)
     {
@@ -55,25 +71,29 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            throw new BadRequestException(ex.Message);
         }
         catch (Exception)
         {
-            return BadRequest(new { message = "Invalid token" });
+            throw new BadRequestException("Invalid token");
         }
     }
 
+    /// <summary>
+    /// Invalidate a refresh token.
+    /// </summary>
+    /// <param name="request">The refresh token to revoke</param>
+    /// <returns>Confirmation of token revocation</returns>
     [Authorize]
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken(RevokeTokenRequest request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var userIdInt))
-            return Unauthorized();
+            throw new UnauthorizedException("User is not authenticated or has invalid ID.");
 
         var success = await authService.RevokeTokenAsync(request.RefreshToken, userIdInt, "Revoked by user");
-        if (!success)
-            return NotFound("Token not found or already revoked");
+        if (!success) throw new NotFoundException("Token not found or already revoked");
 
         return Ok(new { message = "Token revoked" });
     }

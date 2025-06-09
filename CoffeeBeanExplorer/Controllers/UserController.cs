@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using CoffeeBeanExplorer.Application.DTOs;
 using CoffeeBeanExplorer.Application.Services.Interfaces;
+using CoffeeBeanExplorer.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,7 @@ namespace CoffeeBeanExplorer.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/users")]
 [Authorize]
-public class UserController(IUserService userService) : ControllerBase
+public class UserController(IUserService userService, ILogger<UserController> logger) : ControllerBase
 {
     /// <summary>
     ///     Retrieves the currently authenticated user
@@ -22,11 +23,20 @@ public class UserController(IUserService userService) : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var parsedId))
-            return Unauthorized("User is not authenticated or has invalid ID.");
+        {
+            logger.LogWarning("Unauthorized access attempt with invalid user ID: {UserId}", userId);
+            throw new UnauthorizedException("User is not authenticated or has invalid ID.");
+        }
 
+        logger.LogInformation("Retrieving current user information for ID: {UserId}", parsedId);
         var user = await userService.GetUserByIdAsync(parsedId);
-        if (user == null) return NotFound("User not found.");
+        if (user == null)
+        {
+            logger.LogWarning("User not found for ID: {UserId}", parsedId);
+            throw new NotFoundException($"User with ID {parsedId} not found.");
+        }
 
+        logger.LogInformation("User information retrieved successfully for ID: {UserId}", parsedId);
         return Ok(user);
     }
 
@@ -37,7 +47,9 @@ public class UserController(IUserService userService) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
     {
+        logger.LogInformation("Retrieving all users");
         var users = await userService.GetAllUsersAsync();
+        logger.LogInformation("Successfully retrieved {UserCount} users", users.Count());
         return Ok(users);
     }
 
@@ -50,10 +62,20 @@ public class UserController(IUserService userService) : ControllerBase
     public async Task<ActionResult<UserDto>> GetById(string id)
     {
         if (!int.TryParse(id, out var parsedId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid user ID format: {UserId}", id);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
+        logger.LogInformation("Retrieving user with ID: {UserId}", parsedId);
         var user = await userService.GetUserByIdAsync(parsedId);
-        if (user == null) return NotFound();
+        if (user == null)
+        {
+            logger.LogWarning("User not found for ID: {UserId}", parsedId);
+            throw new NotFoundException($"User with ID {parsedId} not found.");
+        }
+
+        logger.LogInformation("User retrieved successfully with ID: {UserId}", parsedId);
         return Ok(user);
     }
 
@@ -67,25 +89,43 @@ public class UserController(IUserService userService) : ControllerBase
     public async Task<ActionResult<UserDto>> Update(string id, UserUpdateDto userUpdateDto)
     {
         if (!int.TryParse(id, out var parsedId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid user ID format for update: {UserId}", id);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var currentParsedId))
-            return Unauthorized("User is not authenticated or has invalid ID.");
+        {
+            logger.LogWarning("User authentication failed or invalid ID: {CurrentUserId}", currentUserId);
+            throw new UnauthorizedException("User is not authenticated or has invalid ID.");
+        }
 
         var isAdmin = User.IsInRole("Admin");
         if (parsedId != currentParsedId && !isAdmin)
-            return Forbid("You can only update your own user information.");
+        {
+            logger.LogWarning("Unauthorized update attempt by user: {CurrentUserId} for user ID: {UserId}",
+                currentParsedId, parsedId);
+            throw new UnauthorizedException("You can only update your own user information.");
+        }
 
         try
         {
+            logger.LogInformation("Updating user with ID: {UserId}", parsedId);
             var user = await userService.UpdateUserAsync(parsedId, userUpdateDto);
-            if (user == null) return NotFound();
+            if (user == null)
+            {
+                logger.LogWarning("User not found for update, ID: {UserId}", parsedId);
+                throw new NotFoundException($"User with ID {parsedId} not found.");
+            }
+
+            logger.LogInformation("User {UserId} updated successfully", parsedId);
             return Ok(user);
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { ex.Message });
+            logger.LogError(ex, "Error occurred while updating user with ID: {UserId}", parsedId);
+            throw new InternalServerErrorException($"An error occurred while updating user: {ex.Message}");
         }
     }
 
@@ -98,18 +138,34 @@ public class UserController(IUserService userService) : ControllerBase
     public async Task<IActionResult> Delete(string id)
     {
         if (!int.TryParse(id, out var parsedId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid user ID format for deletion: {UserId}", id);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out var currentParsedId))
-            return Unauthorized("User is not authenticated or has invalid ID.");
+        {
+            logger.LogWarning("User authentication failed or invalid ID: {CurrentUserId}", currentUserId);
+            throw new UnauthorizedException("User is not authenticated or has invalid ID.");
+        }
 
         var isAdmin = User.IsInRole("Admin");
         if (parsedId != currentParsedId && !isAdmin)
-            return Forbid("You can only delete your own user account.");
+        {
+            logger.LogWarning("Unauthorized deletion attempt by user: {CurrentUserId} for user ID: {UserId}",
+                currentParsedId, parsedId);
+            throw new UnauthorizedException("You can only delete your own user account.");
+        }
 
         var success = await userService.DeleteUserAsync(parsedId);
-        if (!success) return NotFound();
+        if (!success)
+        {
+            logger.LogWarning("User not found for deletion, ID: {UserId}", parsedId);
+            throw new NotFoundException($"User with ID {parsedId} not found.");
+        }
+
+        logger.LogInformation("User {UserId} deleted successfully", parsedId);
         return NoContent();
     }
 }

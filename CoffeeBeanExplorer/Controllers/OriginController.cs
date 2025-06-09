@@ -2,6 +2,7 @@
 using CoffeeBeanExplorer.Application.Origins.Commands;
 using CoffeeBeanExplorer.Application.Origins.Queries;
 using CoffeeBeanExplorer.Domain.Enums;
+using CoffeeBeanExplorer.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ namespace CoffeeBeanExplorer.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/origins")]
 [Authorize]
-public class OriginController(IMediator mediator) : ControllerBase
+public class OriginController(IMediator mediator, ILogger<OriginController> logger) : ControllerBase
 {
     /// <summary>
     ///     Retrieves all coffee origins
@@ -21,7 +22,9 @@ public class OriginController(IMediator mediator) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<OriginDto>>> GetAll()
     {
+        logger.LogInformation("Retrieving all coffee origins");
         var origins = await mediator.Send(new GetAllOriginsQuery());
+        logger.LogInformation("Successfully retrieved {OriginCount} origins", origins.Count());
         return Ok(origins);
     }
 
@@ -34,10 +37,20 @@ public class OriginController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<OriginDto>> GetById(string id)
     {
         if (!int.TryParse(id, out var parsedId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid origin ID format: {OriginId}", id);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
+        logger.LogInformation("Retrieving origin with ID: {OriginId}", parsedId);
         var origin = await mediator.Send(new GetOriginByIdQuery(parsedId));
-        if (origin is null) return NotFound();
+        if (origin is null)
+        {
+            logger.LogWarning("Origin not found for ID: {OriginId}", parsedId);
+            throw new NotFoundException($"Origin with ID {parsedId} not found.");
+        }
+
+        logger.LogInformation("Origin retrieved successfully with ID: {OriginId}", parsedId);
         return Ok(origin);
     }
 
@@ -50,8 +63,18 @@ public class OriginController(IMediator mediator) : ControllerBase
     [Authorize(Roles = $"{nameof(UserRole.Brewer)},{nameof(UserRole.Admin)}")]
     public async Task<ActionResult<OriginDto>> Create([FromBody] CreateOriginDto createDto)
     {
-        var origin = await mediator.Send(new CreateOriginCommand(createDto));
-        return CreatedAtAction(nameof(GetById), new { id = origin.Id }, origin);
+        try
+        {
+            logger.LogInformation("Creating new coffee origin with Country: {Country}", createDto.Country);
+            var origin = await mediator.Send(new CreateOriginCommand(createDto));
+            logger.LogInformation("Created new coffee origin with ID: {OriginId}", origin.Id);
+            return CreatedAtAction(nameof(GetById), new { id = origin.Id }, origin);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error occurred while creating origin");
+            throw new InternalServerErrorException($"An error occurred while creating origin: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -65,10 +88,20 @@ public class OriginController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Update(string id, UpdateOriginDto updateDto)
     {
         if (!int.TryParse(id, out var parsedId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid origin ID format: {OriginId}", id);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
+        logger.LogInformation("Attempting to update origin with ID: {OriginId}", parsedId);
         var success = await mediator.Send(new UpdateOriginCommand(parsedId, updateDto));
-        if (!success) return NotFound();
+        if (!success)
+        {
+            logger.LogWarning("Origin not found for update, ID: {OriginId}", parsedId);
+            throw new NotFoundException($"Origin with ID {parsedId} not found.");
+        }
+
+        logger.LogInformation("Origin updated successfully, ID: {OriginId}", parsedId);
         return NoContent();
     }
 
@@ -82,10 +115,20 @@ public class OriginController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Delete(string id)
     {
         if (!int.TryParse(id, out var parsedId))
-            return BadRequest("Invalid ID format or value too large.");
+        {
+            logger.LogWarning("Invalid origin ID format for deletion: {OriginId}", id);
+            throw new BadRequestException("Invalid ID format or value too large.");
+        }
 
+        logger.LogInformation("Attempting to delete origin with ID: {OriginId}", parsedId);
         var success = await mediator.Send(new DeleteOriginCommand(parsedId));
-        if (!success) return NotFound();
+        if (!success)
+        {
+            logger.LogWarning("Origin not found for deletion, ID: {OriginId}", parsedId);
+            throw new NotFoundException($"Origin with ID {parsedId} not found.");
+        }
+
+        logger.LogInformation("Origin deleted successfully, ID: {OriginId}", parsedId);
         return NoContent();
     }
 }
